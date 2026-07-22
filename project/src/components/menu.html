@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مطعم المروة | قائمة الطعام</title>
+    <link rel="stylesheet" href="../assets/stylemenu.css">
+    
+</head>
+<body>
+
+    <div class="app">
+<!-- الهيدر العلوي (لوجو + همبرجر) -->
+<header class="top-navbar">
+            <a href="#home" class="logo">
+                <span class="logo-mark">م</span>
+                <span class="logo-text">مطعم المروة</span>
+            </a>
+</header>
+
+<main class="restaurant-menu">
+
+  <!-- الجزء الأول: صورة الأكل والنص -->
+  <section class="menu-hero">
+    <div class="menu-hero__overlay">
+      <h2 class="menu-hero__title">قائمة الطعام</h2>
+      <p class="menu-hero__subtitle">أشهى المأكولات المحضرة بكل حب وعناية <br> (الأسعار قابلة للتحديث)</p>
+    </div>
+  </section>
+
+  <!-- الجزء الثاني: زراير التبويبات -->
+  <div class="menu-tabs">
+    <button class="tab-btn active" onclick="openTab(event, 'orders-tab')">طلبات</button>
+    <button class="tab-btn" onclick="openTab(event, 'sandwiches-tab')">سندوتشات</button>
+  </div>
+
+  <!-- الجزء الثالث: محتوى القائمة -->
+  <div class="menu-content">
+    
+    <!-- قسم الطلبات -->
+    <div id="orders-tab" class="tab-section active">
+      <!-- كارت الصنف (شوف الشياكة هنا) -->
+      <div class="menu-item-card">
+        <h3 class="menu-item-card__name">كيس فول محوج</h3>
+        <span class="menu-price">10 جنيه</span>
+      </div>
+      <div class="menu-item-card">
+        <h3 class="menu-item-card__name">كيس فول مطحون (زيت حار + طحينة)</h3>
+        <span class="menu-price">10 جنيه</span>
+      </div>
+      <div class="menu-item-card">
+        <h3 class="menu-item-card__name">عجة بيضتين</h3>
+        <span class="menu-price">25 جنيه</span>
+      </div>
+    </div>
+
+    <!-- قسم السندوتشات -->
+    <div id="sandwiches-tab" class="tab-section hidden">
+      <div class="menu-item-card">
+        <h3 class="menu-item-card__name">سندوتش طعمية محشية</h3>
+        <span class="menu-price">10 جنيه</span>
+      </div>
+      <div class="menu-item-card">
+        <h3 class="menu-item-card__name">سندوتش شيبس</h3>
+        <span class="menu-price">8 جنيه</span>
+      </div>
+    </div>
+
+  </div>
+
+</main>
+
+<!-- السكريبت السحري لتشغيل التبويبات -->
+<script>
+  function openTab(evt, tabId) {
+    // 1. إخفاء كل الأقسام
+    const sections = document.querySelectorAll('.tab-section');
+    sections.forEach(section => {
+      section.classList.remove('active');
+      section.classList.add('hidden');
+    });
+
+    // 2. إزالة التفعيل من كل الزراير
+    const buttons = document.querySelectorAll('.tab-btn');
+    buttons.forEach(btn => {
+      btn.classList.remove('active');
+    });
+
+    // 3. إظهار القسم المطلوب وتفعيل الزرار اللي انداس عليه
+    document.getElementById(tabId).classList.remove('hidden');
+    document.getElementById(tabId).classList.add('active');
+    evt.currentTarget.classList.add('active');
+  }
+</script>
+
+<!-- شريط التنقل السفلي مرتب ومظبوط -->
+<nav class="bottom-app-bar">
+  <ul class="nav-list">
+    
+
+    
+<!-- الكبسولة الصفراء المتحركة -->
+    <div class="nav-indicator"></div>
+    
+    <!-- 1. الرئيسية -->
+    <li>
+      <a href="index.html" class="nav-item" title="الرئيسية">
+        <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+          <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
+      </a>
+    </li>
+
+    <!-- 2. المنيو (دي الصفحة الحالية، فهي اللي معاها active) -->
+    <li>
+      <a href="menu.html" class="nav-item active" title="المنيو">
+        <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none">
+          <line x1="8" y1="6" x2="21" y2="6"></line>
+          <line x1="8" y1="12" x2="21" y2="12"></line>
+          <line x1="8" y1="18" x2="21" y2="18"></line>
+          <line x1="3" y1="6" x2="3.01" y2="6"></line>
+          <line x1="3" y1="12" x2="3.01" y2="12"></line>
+          <line x1="3" y1="18" x2="3.01" y2="18"></line>
+        </svg>
+      </a>
+    </li>
+
+    <!-- 3. صور -->
+    <li>
+      <a href="photos.html" class="nav-item" title="صورنا">
+        <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+          <circle cx="8.5" cy="8.5" r="1.5"></circle>
+          <polyline points="21 15 16 10 5 21"></polyline>
+        </svg>
+      </a>
+    </li>
+
+    <!-- 4. فيديوهات -->
+    <li>
+      <a href="videos.html" class="nav-item" title="فيديوهات">
+        <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none">
+          <polygon points="23 7 16 12 23 17 23 7"></polygon>
+          <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+        </svg>
+      </a>
+    </li>
+
+    <!-- 5. فريق العمل -->
+    <li>
+      <a href="team.html" class="nav-item" title="فريق العمل">
+        <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+        </svg>
+      </a>
+    </li>
+
+    <!-- 6. تواصل معنا -->
+    <li>
+      <a href="contact.html" class="nav-item" title="تواصل معنا">
+        <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none">
+          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+        </svg>
+      </a>
+    </li>
+
+  </ul>
+</nav>
+</div>
+
+ <script>
+  function switchTab(tabName) {
+    // 1. إخفاء كل الأقسام
+    document.querySelectorAll('.tab-section').forEach(section => {
+      section.classList.remove('active');
+    });
+
+    // 2. إلغاء التفعيل عن كل الزراير
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.classList.remove('active');
+    });
+
+    // 3. إظهار القسم المطلوب وتفعيل الزرار الخاص بيه
+    if (tabName === 'orders') {
+      document.getElementById('orders-tab').classList.add('active');
+      document.getElementById('btn-orders').classList.add('active');
+    } else if (tabName === 'sandwiches') {
+      document.getElementById('sandwiches-tab').classList.add('active');
+      document.getElementById('btn-sandwiches').classList.add('active');
+    }
+  }
+</script>
+<script>
+    function moveNavIndicator() {
+  const navList = document.querySelector('.nav-list');
+  const activeItem = document.querySelector('.nav-item.active');
+  const indicator = document.querySelector('.nav-indicator');
+
+  if (activeItem && indicator && navList) {
+    // حساب عرض ومكان الأيقونة النشطة بالنسبة للبار
+    const itemRect = activeItem.getBoundingClientRect();
+    const listRect = navList.getBoundingClientRect();
+
+    // ضبط عرض ومكان المؤشر الأصفر
+    indicator.style.width = `${itemRect.width}px`;
+    indicator.style.left = `${itemRect.left - listRect.left}px`;
+  }
+}
+
+// 1. تشغيل الحركة فور تحميل الصفحة
+window.addEventListener('DOMContentLoaded', moveNavIndicator);
+
+// 2. إعادة ضبط المكان لو مقاس الشاشة اتغير
+window.addEventListener('resize', moveNavIndicator);
+
+// 3. تحريك الصفار مباشرة عند الضغط على أي زرار
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', function(e) {
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    this.classList.add('active');
+    moveNavIndicator();
+  });
+});
+</script>
+</body>
+</html>

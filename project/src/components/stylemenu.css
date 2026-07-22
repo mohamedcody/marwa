@@ -1,0 +1,361 @@
+/* ==========================================================================
+   1. استدعاء الخطوط والمتغيرات الأساسية
+   ========================================================================== */
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
+
+:root {
+  --bg-dark-green: #12211D;
+  --gold-accent: #C9A227;
+  --text-cream: #F3E9D2;
+  --divider-color: rgba(243, 233, 210, 0.15);
+  --card-glow: rgba(117, 230, 42, 0.25);
+}
+
+/* إعادة ضبط الحواف والأبعاد */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Cairo', sans-serif;
+  background: linear-gradient(rgba(9, 15, 13, 0.85), rgba(9, 15, 13, 0.95)),
+              url("../images/Pasted image.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  color: var(--text-cream);
+  direction: rtl; /* ضبط الاتجاه للغة العربية */
+}
+
+/* حاوية التطبيق الرئيسية */
+.app {
+  width: 100%;
+  max-width: 480px;
+  min-height: 100vh;
+  margin: 0 auto; /* توسيط التطبيق في الشاشات الكبيرة */
+  position: relative;
+  padding-bottom: 90px; /* مسافة أمان عشان الشريط السفلي ما يغطيش على آخر عنصر */
+}
+
+/* ==========================================================================
+   2. الشريط العلوي (Top Navbar)
+   ========================================================================== */
+.top-navbar {
+  position: sticky;
+  top: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px 22px;
+  background: rgba(18, 33, 29, 0.85);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  z-index: 999;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: #E4BC41;
+}
+
+.logo-mark {
+  width: 42px;
+  height: 42px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  border: 2px solid var(--gold-accent);
+  font-size: 20px;
+  font-weight: bold;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.logo-text {
+  font-size: 1.8rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+/* ==========================================================================
+   3. قسم الهيرو / صورة المنيو (Hero Section)
+   ========================================================================== */
+.menu-hero {
+  width: calc(100% - 32px);
+  margin: 16px auto;
+  height: 180px;
+  background-image: url('../images/Pasted image.png');
+  background-size: cover;
+  background-position: center;
+  border-radius: 24px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+}
+
+.menu-hero__overlay {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(18, 33, 29, 0.75);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 20px;
+}
+
+.menu-hero__title {
+  color: var(--gold-accent);
+  font-size: 1.8rem;
+  margin-bottom: 6px;
+  font-weight: 700;
+}
+
+.menu-hero__subtitle {
+  color: var(--text-cream);
+  font-size: 0.95rem;
+  opacity: 0.85;
+}
+
+/* ==========================================================================
+   4. زراير التبويبات (Tabs)
+   ========================================================================== */
+.menu-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin: 20px 16px;
+}
+
+.tab-btn {
+  background-color: transparent;
+  color: var(--text-cream);
+  border: 1px solid var(--gold-accent);
+  padding: 8px 28px;
+  border-radius: 25px;
+  font-size: 1rem;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.tab-btn.active {
+  background-color: var(--gold-accent);
+  color: var(--bg-dark-green);
+  font-weight: 700;
+  box-shadow: 0 4px 15px rgba(201, 162, 39, 0.35);
+}
+
+/* ==========================================================================
+   5. إدارة إظهار وإخفاء الأقسام (حل مشكلة التداخل)
+   ========================================================================== */
+.menu-content {
+  padding: 0 16px;
+}
+
+.tab-section {
+  display: none !important; /* إخفاء محكم */
+}
+
+.tab-section.active {
+  display: block !important; /* إظهار القسم النشط فقط */
+  animation: fadeIn 0.4s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ==========================================================================
+   6. كروت الطعام المطبقة والمعدة (Cards)
+   ========================================================================== */
+.menu-item-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px; /* بدل 100px اللي كانت بتبوظ المقاسات */
+  background: linear-gradient(145deg, rgba(12, 214, 147, 0.8), rgba(18, 33, 29, 0.9));
+  padding: 16px 22px;
+  border-radius: 35px;
+  margin-bottom: 14px;
+  border: 1px solid rgba(201, 162, 39, 0.3);
+  box-shadow: 0 8px 20px var(--card-glow);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.menu-item-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 25px rgba(36, 148, 192, 0.4);
+}
+
+.menu-item-card__name {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.menu-price {
+  color: var(--gold-accent);
+  font-weight: 700;
+  font-size: 1.1rem;
+  white-space: nowrap; /* يمنع نزول كلمة "جنيه" في سطر جديد */
+}
+
+/* ==========================================================================
+   7. شريط التنقل السفلي الثابت (Bottom Nav)
+   ========================================================================== */
+.bottom-app-bar {
+  position: fixed !important;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 92%;
+  max-width: 420px;
+  border-radius: 40px;
+  background-color: rgba(18, 33, 29, 0.90);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(201, 162, 39, 0.3);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+  padding: 8px 12px;
+}
+
+.nav-list {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  list-style: none;
+  position: relative;
+}
+/* الكبسولة الصفراء المتحركة */
+.nav-indicator {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 38px;
+  background-color: var(--gold-accent, #C9A227);
+  border-radius: 25px;
+  box-shadow: 0 4px 15px rgba(201, 162, 39, 0.4);
+  z-index: 1; /* لتظهر خلف الأيقونة مباشرة */
+  
+  /* سر اللمسة السلسة (Inertia Slide Effect) */
+  transition: all 0.45s cubic-bezier(0.25, 1, 0.5, 1); 
+}
+/* الكبسولة الصفراء المتحركة */
+.nav-indicator {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 38px;
+  background-color: var(--gold-accent, #C9A227);
+  border-radius: 25px;
+  box-shadow: 0 4px 15px rgba(201, 162, 39, 0.4);
+  z-index: 1; /* لتظهر خلف الأيقونة مباشرة */
+  
+  /* سر اللمسة السلسة (Inertia Slide Effect) */
+  transition: all 0.45s cubic-bezier(0.25, 1, 0.5, 1); 
+}
+/* التغيير عند تفعيل الأيقونة النشطة */
+.nav-item.active {
+  color: var(--bg-dark-green, #12211D) !important; /* لون الأيقونة يبقى غامق */
+  opacity: 1;
+  background-color: transparent !important; /* إلغاء الخلفية الثابتة القديمة */
+  box-shadow: none !important;
+}
+
+.nav-item {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 25px;
+  color: var(--text-cream);
+  opacity: 0.65;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.nav-item.active {
+  background-color: var(--gold-accent);
+  color: var(--bg-dark-green);
+  opacity: 1;
+  box-shadow: 0 4px 12px rgba(201, 162, 39, 0.4);
+}
+
+
+
+
+/* ====================================
+   شريط التنقل السفلي - 6 عناصر متناسقة
+==================================== */
+.bottom-app-bar {
+  position: fixed !important;
+  bottom: 20px; 
+  left: 50%;
+  transform: translateX(-50%);
+  
+  width: 94%; 
+  max-width: 420px; /* وسعنا العرض شوية عشان 6 أيقونات */
+  
+  border-radius: 40px; 
+  background-color: rgba(22, 40, 35, 0.90); 
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  
+  border: 1px solid rgba(201, 162, 39, 0.25);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  
+  z-index: 9999;
+  padding: 6px 10px; /* قللنا التباعد الراسي شوية */
+}
+
+.nav-list {
+  display: flex;
+  justify-content: space-around; /* توزيع متساوي للـ 6 عناصر */
+  align-items: center;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-item {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 8px 12px; /* حجم الزر المناسب */
+  border-radius: 25px;
+  color: #e0e0e0;
+  opacity: 0.65;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+/* العنصر النشط (الصفحة اللي الشغال فيها) */
+.nav-item.active {
+  background-color: #c9a227; /* اللون الدهبي */
+  color: #0d1a16; /* لون الأيقونة الغامق */
+  opacity: 1;
+  box-shadow: 0 4px 12px rgba(201, 162, 39, 0.4);
+}
+
+.nav-item:hover {
+  opacity: 1;
+}
+
