@@ -17,12 +17,12 @@ export const teamMembers: TeamMember[] = [
     name: 'اللمبي',
     role: 'شيف الطعمية',
     bio: 'أمهر قليّ الطعمية في القاهرة كلها. إيده بتطلع طعمية مقرمشة من ذهب.',
-    avatar: 'https://images.pexels.com/photos/3777943/pexels-photo-3777943.jpeg?auto=compress&cs=tinysrgb&w=600',
+    avatar: 'localImg',
     gallery: [
        localImg,
-      'https://images.pexels.com/photos/3777931/pexels-photo-3777931.jpeg?auto=compress&cs=tinysrgb&w=1000',
-      'https://images.pexels.com/photos/3777947/pexels-photo-3777947.jpeg?auto=compress&cs=tinysrgb&w=1000',
-      'https://images.pexels.com/photos/3777950/pexels-photo-3777950.jpeg?auto=compress&cs=tinysrgb&w=1000',
+      'localImg',
+      'localImg',
+      'localImg',
     ],
   },
   {

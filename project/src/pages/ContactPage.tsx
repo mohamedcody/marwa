@@ -1,9 +1,9 @@
 import { Clock, Mail, MapPin, Phone } from 'lucide-react';
 
 const branches = [
-  { name: 'فرع وسط البلد', address: 'شارع طلعت حرب، وسط البلد', phone: '01000000001' },
-  { name: 'فرع المعادي', address: 'شارع 9، المعادي', phone: '01000000002' },
-  { name: 'فرع مدينة نصر', address: 'شارع مكرم عبيد، مدينة نصر', phone: '01000000003' },
+  { name: 'المرج الغربيه', address: ' بجوار نادي المرج', phone: '01148415128' },
+  { name: 'المرج الشرقيه ', address: 'بجوار مدرسه العين خاصه', phone: '01225573152' },
+  { name: 'المرج الشرقيه', address: 'بجوار مدرسه العين خاصه', phone: '0122165286' },
 ];
 
 export default function ContactPage() {
