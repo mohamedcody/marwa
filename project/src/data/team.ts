@@ -1,6 +1,4 @@
 
-// بتعمل استدعاء للصورة وتديها أي اسم متغير، مثلاً localImg
-import localImg from "../image/Pasted image.png";
 
 export type TeamMember = {
   id: string;
@@ -15,40 +13,39 @@ export const teamMembers: TeamMember[] = [
   {
     id: 'lambi',
     name: 'اللمبي',
-    role: 'شيف الطعمية',
+    role: 'مدير الفرع',
     bio: 'أمهر قليّ الطعمية في القاهرة كلها. إيده بتطلع طعمية مقرمشة من ذهب.',
-    avatar: 'localImg',
+    avatar: './images/imgg.png',
     gallery: [
-       localImg,
-      'localImg',
-      'localImg',
-      'localImg',
+   '/images/imgg.png',
+      '/images/imgg.png',
+      '/images/lembey.png',
+      '/images/doksh.png',
+      '/images/hesham.png',
     ],
   },
   {
     id: 'said',
     name: 'سعيد',
-    role: 'شيف الفول',
+    role: 'مدير الفرع',
     bio: 'ملك الفول المدمس. بيراعي على الوصفة الأصيلة من أيام جدوده.',
-    avatar: 'https://images.pexels.com/photos/3777943/pexels-photo-3777943.jpeg?auto=compress&cs=tinysrgb&w=600',
+    avatar: './images/said.png',
     gallery: [
-      'https://images.pexels.com/photos/1279330/pexels-photo-1279330.jpeg?auto=compress&cs=tinysrgb&w=1000',
-      'https://images.pexels.com/photos/8472992/pexels-photo-8472992.jpeg?auto=compress&cs=tinysrgb&w=1000',
-      'https://images.pexels.com/photos/5409026/pexels-photo-5409026.jpeg?auto=compress&cs=tinysrgb&w=1000',
-      'https://images.pexels.com/photos/4194683/pexels-photo-4194683.jpeg?auto=compress&cs=tinysrgb&w=1000',
+      './images/said.png',
+      './images/saidG.png',
     ],
   },
   {
     id: 'nazer',
     name: 'ناظر',
-    role: 'مدير المطعم',
+    role: '',
     bio: 'بيدير المطعم بحكمة وكرم ضيافة. ضيوفنا دايماً في أمان.',
-    avatar: 'https://images.pexels.com/photos/3777943/pexels-photo-3777943.jpeg?auto=compress&cs=tinysrgb&w=600',
+    avatar: 'localImg',
     gallery: [
-      'https://images.pexels.com/photos/2092507/pexels-photo-2092507.jpeg?auto=compress&cs=tinysrgb&w=1000',
-      'https://images.pexels.com/photos/1640775/pexels-photo-1640775.jpeg?auto=compress&cs=tinysrgb&w=1000',
-      'https://images.pexels.com/photos/3219547/pexels-photo-3219547.jpeg?auto=compress&cs=tinysrgb&w=1000',
-      'https://images.pexels.com/photos/2474661/pexels-photo-2474661.jpeg?auto=compress&cs=tinysrgb&w=1000',
+      './images/nazer.png',
+      './images/nazer.png',
+      './images/nazer.png',
+      './images/nazer.png',
     ],
   },
 ];

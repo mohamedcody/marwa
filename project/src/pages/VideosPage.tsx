@@ -7,6 +7,9 @@ export default function VideosPage() {
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const [activeIdx, setActiveIdx] = useState(0);
   const [liked, setLiked] = useState<Set<string>>(new Set());
+  
+  // 1. ضفنا State جديدة تتابع حالة كل فيديو (شغال ولا واقف) عشان الأيقونة
+  const [pausedStates, setPausedStates] = useState<Record<number, boolean>>({});
 
   // Play only the active video, pause others
   useEffect(() => {
@@ -47,6 +50,17 @@ export default function VideosPage() {
     });
   }, []);
 
+  // 2. دالة مخصصة للتحكم في التشغيل/الإيقاف عند الضغط
+  const togglePlay = (idx: number) => {
+    const v = videoRefs.current[idx];
+    if (!v) return;
+    if (v.paused) {
+      v.play().catch(() => {});
+    } else {
+      v.pause();
+    }
+  };
+
   return (
     <div
       ref={containerRef}
@@ -63,25 +77,32 @@ export default function VideosPage() {
             src={video.src}
             poster={video.poster}
             loop
-            muted
             playsInline
             preload="metadata"
             className="h-full w-full object-cover"
-            onClick={(e) => {
-              const v = e.currentTarget;
-              if (v.paused) v.play().catch(() => {});
-              else v.pause();
-            }}
+            // 3. ربطنا الأحداث مباشرة بالستيت عشان أيقونة الـ Play تظهر وتختفي صح
+            onPlay={() => setPausedStates(prev => ({ ...prev, [idx]: false }))}
+            onPause={() => setPausedStates(prev => ({ ...prev, [idx]: true }))}
           />
 
-          {/* Play overlay when paused */}
-          <PlayIndicator videoRef={() => videoRefs.current[idx]} />
+          {/* 4. طبقة شفافة مخصصة للضغط (Click Overlay) - بتمنع مشاكل الموبايل */}
+          <div
+            className="absolute inset-0 z-10"
+            onClick={() => togglePlay(idx)}
+          />
+
+          {/* أيقونة Play بتظهر بس لما الفيديو يكون واقف */}
+          {pausedStates[idx] && (
+            <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center transition-opacity">
+              <Play size={64} className="fill-white/80 text-white/80" />
+            </div>
+          )}
 
           {/* Gradient overlay */}
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
+          <div className="pointer-events-none absolute inset-0 z-20 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
 
-          {/* Right action bar */}
-          <div className="absolute bottom-24 left-4 flex flex-col items-center gap-5">
+          {/* أزرار التفاعل: أخدت z-30 عشان تبقى فوق الطبقة الشفافة وتقدر تدوس عليها بدون ما توقف الفيديو */}
+          <div className="absolute bottom-24 left-4 z-30 flex flex-col items-center gap-5">
             <button
               onClick={() => toggleLike(video.id)}
               className="flex flex-col items-center gap-1"
@@ -112,36 +133,12 @@ export default function VideosPage() {
           </div>
 
           {/* Caption */}
-          <div className="absolute bottom-24 right-4 max-w-[70%] pr-4">
+          <div className="absolute bottom-24 right-4 z-30 max-w-[70%] pr-4 pointer-events-none">
             <p className="mb-1 text-sm font-bold text-white">{video.author}</p>
             <p className="text-sm text-white/90">{video.caption}</p>
           </div>
         </div>
       ))}
-    </div>
-  );
-}
-
-function PlayIndicator({ videoRef }: { videoRef: () => HTMLVideoElement | null }) {
-  const [show, setShow] = useState(false);
-
-  useEffect(() => {
-    const v = videoRef();
-    if (!v) return;
-    const onPlay = () => setShow(false);
-    const onPause = () => setShow(true);
-    v.addEventListener('play', onPlay);
-    v.addEventListener('pause', onPause);
-    return () => {
-      v.removeEventListener('play', onPlay);
-      v.removeEventListener('pause', onPause);
-    };
-  }, [videoRef]);
-
-  if (!show) return null;
-  return (
-    <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-      <Play size={64} className="fill-white/80 text-white/80" />
     </div>
   );
 }
