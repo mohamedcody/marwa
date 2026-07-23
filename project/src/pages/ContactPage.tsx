@@ -3,7 +3,7 @@ import { Clock, Mail, MapPin, MessageCircle, Phone, X } from 'lucide-react';
 
 // عدّل اللينكات دي بلينكاتك الحقيقية
 const socialLinks = {
-  whatsapp: 'https://wa.me/20122165286', // رقم فرع المرج الغربية — غيّره لو عايز رقم تاني
+  whatsapp: 'https://wa.me/201004851243', // رقم فرع المرج الغربية — غيّره لو عايز رقم تاني
   facebook: 'https://facebook.com/your-page',
   tiktok: 'https://tiktok.com/@your-page',
 };
@@ -75,9 +75,9 @@ function FloatingSocialButton() {
 }
 
 const branches = [
-  { name: 'المرج الغربيه', address: ' بجوار نادي المرج', phone: '01148415128' },
-  { name: 'المرج الشرقيه ', address: 'بجوار مدرسه العين خاصه', phone: '01225573152' },
-  { name: 'المرج الشرقيه', address: 'بجوار مدرسه العين خاصه', phone: '0122165286' },
+  { name: 'المرج الشرقية', address: ' بجوار نادي المرج', phone: '01288722713' },
+  { name: 'المرج الغربية', address: 'بجوار مدرسه العين خاصه', phone: '01004851243' },
+  { name: 'المرج الغربية', address: 'بجوار شارع العدل ', phone: '01507379992' },
 ];
 
 export default function ContactPage() {
