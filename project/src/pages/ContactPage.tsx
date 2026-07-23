@@ -3,8 +3,8 @@ import { Clock, Mail, MapPin, MessageCircle, Phone, X } from 'lucide-react';
 
 // عدّل اللينكات دي بلينكاتك الحقيقية
 const socialLinks = {
-  whatsapp: 'https://wa.me/201148415128', // رقم فرع المرج الغربية — غيّره لو عايز رقم تاني
-  facebook: 'https://www.facebook.com/said.kamel.500420',
+  whatsapp: 'https://wa.me/20122165286', // رقم فرع المرج الغربية — غيّره لو عايز رقم تاني
+  facebook: 'https://facebook.com/your-page',
   tiktok: 'https://tiktok.com/@your-page',
 };
 
@@ -99,7 +99,7 @@ export default function ContactPage() {
           </span>
           <div>
             <p className="text-sm text-muted">اتصل بنا</p>
-            <p className="text-base text-ivory" dir="ltr">0100 000 0000</p>
+            <p className="text-base text-ivory" dir="ltr">01221365286</p>
           </div>
         </a>
 
@@ -112,7 +112,7 @@ export default function ContactPage() {
           </span>
           <div>
             <p className="text-sm text-muted">راسلنا</p>
-            <p className="text-base text-ivory" dir="ltr">info@marwa-restaurant.eg</p>
+            <p className="text-base text-ivory" dir="ltr">marwa-restaurant.eg@gmail.com</p>
           </div>
         </a>
 
@@ -122,7 +122,7 @@ export default function ContactPage() {
           </span>
           <div>
             <p className="text-sm text-muted">مواعيد العمل</p>
-            <p className="text-base text-ivory">يوميا 4ص - 4 م</p>
+            <p className="text-base text-ivory">يومياً4ص - 4م</p>
           </div>
         </div>
       </div>

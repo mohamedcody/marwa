@@ -36,13 +36,13 @@ export default function App() {
     <div className="min-h-screen bg-[#12211d]">
       {!isFullscreenPage && <Header current={page} onNavigate={navigate} />}
 
-      <main>
+     <main>
         {page === 'home' && <HomePage onNavigate={navigate} />}
         {page === 'menu' && <MenuPage />}
         {page === 'photos' && <PhotosPage />}
         {page === 'videos' && <VideosPage />}
         {page === 'team' && <TeamPage />}
-        {page === 'contact' && <ContactPage />}
+        {page === 'contact' && <ContactPage />} 
       </main>
 
       {!isFullscreenPage && <BottomNav current={page} onNavigate={navigate} />}
