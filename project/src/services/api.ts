@@ -120,9 +120,12 @@ export const uploadImageFile = uploadFileAPI;
 
 // Photos API
 // جلب قائمة الصور الخاصة بالمعرض من الباك إند
-export const fetchPhotos = async (): Promise<PhotoData[]> => {
+export const fetchPhotos = async (category?: string): Promise<PhotoData[]> => {
   try {
-    const res = await fetch(`${API_BASE_URL}/photos`);
+    const url = category
+      ? `${API_BASE_URL}/photos?category=${encodeURIComponent(category)}`
+      : `${API_BASE_URL}/photos`;
+    const res = await fetch(url);
     if (!res.ok) throw new Error('Failed to fetch photos');
     const data = await res.json();
     return data.map((item: any) => ({

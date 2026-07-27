@@ -26,7 +26,7 @@ export default function PhotosPage() {
    * جلب الصور من الباك إند عند تحميل الصفحة
    */
   const loadPhotos = async () => {
-    const apiPhotos = await fetchPhotos();
+    const apiPhotos = await fetchPhotos('general');
     if (apiPhotos && apiPhotos.length > 0) {
       // عرض الصور العامة للأكلات فقط أو التي لا تمتلك تصنيفاً
       const generalPhotos = apiPhotos.filter(p => !p.category || p.category === 'general');

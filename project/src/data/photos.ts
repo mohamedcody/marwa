@@ -1,49 +1,34 @@
-export type Photo = {
-  id: string;
-  src: string;
-  caption: string;
-};
+import { PhotoData } from '../services/api';
 
-// Stock food/restaurant photos from Pexels
-export const photos: Photo[] = [
+export const photos: PhotoData[] = [
   {
     id: 'p1',
-    src: 'https://images.pexels.com/photos/1279330/pexels-photo-1279330.jpeg?auto=compress&cs=tinysrgb&w=1200',
-    caption: 'فول مدمس بالزيت الحار',
+    src: '/images/moza.png',
+    caption: 'طبق الموزة البلدي الفاخر مع الأرز بالخلطة والمكسرات',
+    category: 'general'
   },
   {
     id: 'p2',
-    src: 'https://images.pexels.com/photos/8472992/pexels-photo-8472992.jpeg?auto=compress&cs=tinysrgb&w=1200',
-    caption: 'طعمية مصرية طازة',
+    src: '/images/mandi.png',
+    caption: 'نصف تيس مندي مطبوخ في البرميل على الحطب',
+    category: 'general'
   },
   {
     id: 'p3',
-    src: 'https://images.pexels.com/photos/5409026/pexels-photo-5409026.jpeg?auto=compress&cs=tinysrgb&w=1200',
-    caption: 'عجة بيض بالبسطرمة',
+    src: '/images/tawgen.png',
+    caption: 'طاجن عكاوي فخاري ساخن بالبصل المكرمل',
+    category: 'general'
   },
   {
     id: 'p4',
-    src: 'https://images.pexels.com/photos/4194683/pexels-photo-4194683.jpeg?auto=compress&cs=tinysrgb&w=1200',
-    caption: 'فطار مصرية أصيلة',
+    src: '/images/mix_grill.png',
+    caption: 'مشويات مشكلة من الطرب والكفتة والريش المشوية على الفحم',
+    category: 'general'
   },
   {
     id: 'p5',
-    src: 'https://images.pexels.com/photos/2092507/pexels-photo-2092507.jpeg?auto=compress&cs=tinysrgb&w=1200',
-    caption: 'سندوتش طعمية محشية',
-  },
-  {
-    id: 'p6',
-    src: 'https://images.pexels.com/photos/1640775/pexels-photo-1640775.jpeg?auto=compress&cs=tinysrgb&w=1200',
-    caption: 'أكل مصري بلدي',
-  },
-  {
-    id: 'p7',
-    src: 'https://images.pexels.com/photos/3219547/pexels-photo-3219547.jpeg?auto=compress&cs=tinysrgb&w=1200',
-    caption: 'جبنة بيضاء مع خبز',
-  },
-  {
-    id: 'p8',
-    src: 'https://images.pexels.com/photos/2474661/pexels-photo-2474661.jpeg?auto=compress&cs=tinysrgb&w=1200',
-    caption: 'شاي كركك بلدي',
-  },
+    src: '/images/Pasted_image.png',
+    caption: 'صالة استقبال الزوار والضيافة في مطعم المروة',
+    category: 'general'
+  }
 ];

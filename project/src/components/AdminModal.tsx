@@ -62,6 +62,9 @@ export default function AdminModal({ isOpen, onClose, onRefreshData, editMenuIte
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
 
+  // حالة التبويب النشط في لوحة التحكم
+  const [activeTab, setActiveTab] = useState<'menu' | 'photos' | 'videos' | 'info'>('menu');
+
   // حالات نموذج معلومات المطعم
   const [restaurantName, setRestaurantName] = useState('');
   const [restaurantDesc, setRestaurantDesc] = useState('');
@@ -411,13 +414,14 @@ export default function AdminModal({ isOpen, onClose, onRefreshData, editMenuIte
           </form>
         ) : (
           /* Logged In Admin Actions */
-          <div className="mt-6 space-y-6 max-h-[70vh] overflow-y-auto pr-1" dir="rtl">
+          <div className="mt-6 space-y-4 max-h-[70vh] overflow-y-auto pr-1" dir="rtl">
             {/* Top Logged Status */}
             <div className="flex items-center justify-between rounded-xl bg-surface/40 p-3 text-xs">
               <span className="text-emerald-400 font-semibold flex items-center gap-1">
                 <Check size={16} /> متصل كأدمن مسؤول
               </span>
               <button
+                type="button"
                 onClick={handleLogout}
                 className="flex items-center gap-1 text-red-400 hover:text-red-300 font-semibold"
               >
@@ -425,378 +429,436 @@ export default function AdminModal({ isOpen, onClose, onRefreshData, editMenuIte
               </button>
             </div>
 
+            {/* Tabs Header - only show if not in editMenuItem mode */}
+            {!editMenuItem && (
+              <div className="flex border-b border-surface/50 pb-2 gap-1 overflow-x-auto">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('menu')}
+                  className={`flex-1 min-w-[75px] rounded-lg py-2 text-xs font-bold transition-all ${
+                    activeTab === 'menu'
+                      ? 'bg-gold-bright text-[#12211d]'
+                      : 'bg-surface/30 text-gray-400 hover:text-white'
+                  }`}
+                >
+                  🍔 المنيو
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('photos')}
+                  className={`flex-1 min-w-[75px] rounded-lg py-2 text-xs font-bold transition-all ${
+                    activeTab === 'photos'
+                      ? 'bg-gold-bright text-[#12211d]'
+                      : 'bg-surface/30 text-gray-400 hover:text-white'
+                  }`}
+                >
+                  🖼️ الصور
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('videos')}
+                  className={`flex-1 min-w-[75px] rounded-lg py-2 text-xs font-bold transition-all ${
+                    activeTab === 'videos'
+                      ? 'bg-gold-bright text-[#12211d]'
+                      : 'bg-surface/30 text-gray-400 hover:text-white'
+                  }`}
+                >
+                  🎥 الفيديو
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('info')}
+                  className={`flex-1 min-w-[75px] rounded-lg py-2 text-xs font-bold transition-all ${
+                    activeTab === 'info'
+                      ? 'bg-gold-bright text-[#12211d]'
+                      : 'bg-surface/30 text-gray-400 hover:text-white'
+                  }`}
+                >
+                  ℹ️ البيانات
+                </button>
+              </div>
+            )}
+
             {/* Section 1: Add/Edit Menu Item */}
-            <div className="rounded-xl border border-surface p-4 bg-[#0d1815]">
-              <h4 className="flex items-center gap-2 text-sm font-bold text-gold-bright mb-3">
-                {editMenuItem ? <Edit2 size={16} /> : <Plus size={16} />}
-                {editMenuItem ? 'تعديل الصنف الحالي للمنيو' : 'إضافة صنف جديد للمنيو'}
-              </h4>
+            {(editMenuItem || activeTab === 'menu') && (
+              <div className="rounded-xl border border-surface p-4 bg-[#0d1815]">
+                <h4 className="flex items-center gap-2 text-sm font-bold text-gold-bright mb-3">
+                  {editMenuItem ? <Edit2 size={16} /> : <Plus size={16} />}
+                  {editMenuItem ? 'تعديل الصنف الحالي للمنيو' : 'إضافة صنف جديد للمنيو'}
+                </h4>
 
-              <form onSubmit={handleSaveMenuItem} className="space-y-3">
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="block text-[10px] text-gray-400 mb-1">اسم الصنف</label>
-                    <input
-                      type="text"
-                      value={menuName}
-                      onChange={(e) => setMenuName(e.target.value)}
-                      placeholder="مثال: ساندوتش فول"
-                      className="w-full rounded-lg border border-surface bg-[#12211d] px-3 py-2 text-xs text-white focus:outline-none focus:border-gold-bright"
-                      required
-                    />
+                <form onSubmit={handleSaveMenuItem} className="space-y-3">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-[10px] text-gray-400 mb-1">اسم الصنف</label>
+                      <input
+                        type="text"
+                        value={menuName}
+                        onChange={(e) => setMenuName(e.target.value)}
+                        placeholder="مثال: ساندوتش فول"
+                        className="w-full rounded-lg border border-surface bg-[#12211d] px-3 py-2 text-xs text-white focus:outline-none focus:border-gold-bright"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] text-gray-400 mb-1">السعر (ج.م)</label>
+                      <input
+                        type="number"
+                        step="0.5"
+                        value={menuPrice}
+                        onChange={(e) => setMenuPrice(e.target.value)}
+                        placeholder="15"
+                        className="w-full rounded-lg border border-surface bg-[#12211d] px-3 py-2 text-xs text-white focus:outline-none focus:border-gold-bright"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-[10px] text-gray-400 mb-1">القسم</label>
+                      <select
+                        value={menuCategory}
+                        onChange={(e) => setMenuCategory(e.target.value)}
+                        className="w-full rounded-lg border border-surface bg-[#12211d] px-3 py-2 text-xs text-white focus:outline-none"
+                      >
+                        <option value="orders">طلبات</option>
+                        <option value="sandwiches">سندوتشات</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] text-gray-400 mb-1">وصف الصنف (اختياري)</label>
+                      <input
+                        type="text"
+                        value={menuDescription}
+                        onChange={(e) => setMenuDescription(e.target.value)}
+                        placeholder="مثال: بالزيت والليمون الحار"
+                        className="w-full rounded-lg border border-surface bg-[#12211d] px-3 py-2 text-xs text-white focus:outline-none"
+                      />
+                    </div>
                   </div>
 
                   <div>
-                    <label className="block text-[10px] text-gray-400 mb-1">السعر (ج.م)</label>
+                    <label className="block text-[10px] text-gray-400 mb-1">صورة صنف الطعام</label>
                     <input
-                      type="number"
-                      step="0.5"
-                      value={menuPrice}
-                      onChange={(e) => setMenuPrice(e.target.value)}
-                      placeholder="15"
-                      className="w-full rounded-lg border border-surface bg-[#12211d] px-3 py-2 text-xs text-white focus:outline-none focus:border-gold-bright"
-                      required
+                      type="file"
+                      accept="image/*"
+                      onChange={handleMenuFileChange}
+                      className="w-full text-[10px] text-gray-300 file:mr-2 file:rounded-lg file:border-0 file:bg-surface file:px-3 file:py-1.5 file:text-xs file:text-gold-bright hover:file:bg-surface/80"
                     />
                   </div>
-                </div>
 
-                <div className="grid grid-cols-2 gap-2">
+                  {menuPreviewUrl && (
+                    <div className="flex items-center gap-3 rounded-lg border border-surface/50 p-2 bg-[#0a1412]">
+                      <img
+                        src={menuPreviewUrl}
+                        alt="معاينة الصورة"
+                        className="h-12 w-12 rounded-lg object-cover"
+                      />
+                      <span className="text-[10px] text-gray-400">معاينة الصورة قبل الحفظ</span>
+                    </div>
+                  )}
+
+                  <div className="text-center text-[10px] text-gray-500">أو ضع رابط صورة خارجي مباشرة</div>
+
                   <div>
-                    <label className="block text-[10px] text-gray-400 mb-1">القسم</label>
-                    <select
-                      value={menuCategory}
-                      onChange={(e) => setMenuCategory(e.target.value)}
-                      className="w-full rounded-lg border border-surface bg-[#12211d] px-3 py-2 text-xs text-white focus:outline-none"
+                    <input
+                      type="url"
+                      value={menuImageUrlInput}
+                      onChange={(e) => setMenuImageUrlInput(e.target.value)}
+                      placeholder="https://..."
+                      className="w-full rounded-lg border border-surface bg-[#12211d] px-3 py-1.5 text-xs text-white focus:outline-none"
+                    />
+                  </div>
+
+                  {menuStatus && <div className="text-xs text-gold-bright">{menuStatus}</div>}
+
+                  <div className="flex gap-2">
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="flex-1 rounded-lg bg-gold-bright py-2 text-xs font-bold text-[#12211d] hover:brightness-110"
                     >
-                      <option value="orders">طلبات</option>
-                      <option value="sandwiches">سندوتشات</option>
-                    </select>
+                      {editMenuItem ? 'حفظ التعديلات' : 'إضافة الصنف'}
+                    </button>
+                    {editMenuItem && (
+                      <button
+                        type="button"
+                        onClick={onClose}
+                        className="rounded-lg bg-surface px-4 py-2 text-xs font-bold text-white hover:bg-surface/80"
+                      >
+                        إلغاء
+                      </button>
+                    )}
+                  </div>
+                </form>
+              </div>
+            )}
+
+            {/* Section 2: Edit Restaurant Information */}
+            {!editMenuItem && activeTab === 'info' && (
+              <div className="rounded-xl border border-surface p-4 bg-[#0d1815]">
+                <h4 className="flex items-center gap-2 text-sm font-bold text-gold-bright mb-3">
+                  <Info size={16} /> تعديل بيانات ومعلومات المطعم
+                </h4>
+
+                <form onSubmit={handleUpdateRestaurantInfo} className="space-y-3">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-[10px] text-gray-400 mb-1">اسم المطعم</label>
+                      <input
+                        type="text"
+                        value={restaurantName}
+                        onChange={(e) => setRestaurantName(e.target.value)}
+                        placeholder="مطعم المروة"
+                        className="w-full rounded-lg border border-surface bg-[#12211d] px-3 py-2 text-xs text-white focus:outline-none"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] text-gray-400 mb-1">الهاتف</label>
+                      <input
+                        type="text"
+                        value={restaurantPhone}
+                        onChange={(e) => setRestaurantPhone(e.target.value)}
+                        placeholder="01221365286"
+                        className="w-full rounded-lg border border-surface bg-[#12211d] px-3 py-2 text-xs text-white focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-[10px] text-gray-400 mb-1">العنوان</label>
+                      <input
+                        type="text"
+                        value={restaurantAddress}
+                        onChange={(e) => setRestaurantAddress(e.target.value)}
+                        placeholder="المرج الشرقية"
+                        className="w-full rounded-lg border border-surface bg-[#12211d] px-3 py-2 text-xs text-white focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] text-gray-400 mb-1">مواعيد العمل</label>
+                      <input
+                        type="text"
+                        value={restaurantWorkingHours}
+                        onChange={(e) => setRestaurantWorkingHours(e.target.value)}
+                        placeholder="يومياً 4ص - 4م"
+                        className="w-full rounded-lg border border-surface bg-[#12211d] px-3 py-2 text-xs text-white focus:outline-none"
+                      />
+                    </div>
                   </div>
 
                   <div>
-                    <label className="block text-[10px] text-gray-400 mb-1">وصف الصنف (اختياري)</label>
-                    <input
-                      type="text"
-                      value={menuDescription}
-                      onChange={(e) => setMenuDescription(e.target.value)}
-                      placeholder="مثال: بالزيت والليمون الحار"
-                      className="w-full rounded-lg border border-surface bg-[#12211d] px-3 py-2 text-xs text-white focus:outline-none"
+                    <label className="block text-[10px] text-gray-400 mb-1">الوصف العام / الشعار</label>
+                    <textarea
+                      value={restaurantDesc}
+                      onChange={(e) => setRestaurantDesc(e.target.value)}
+                      placeholder="طعم أصيل من قلب القاهرة..."
+                      className="w-full rounded-lg border border-surface bg-[#12211d] px-3 py-2 text-xs text-white focus:outline-none h-16 resize-none"
                     />
                   </div>
-                </div>
 
-                <div>
-                  <label className="block text-[10px] text-gray-400 mb-1">صورة صنف الطعام</label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleMenuFileChange}
-                    className="w-full text-[10px] text-gray-300 file:mr-2 file:rounded-lg file:border-0 file:bg-surface file:px-3 file:py-1.5 file:text-xs file:text-gold-bright hover:file:bg-surface/80"
-                  />
-                </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-[10px] text-gray-400 mb-1">رابط فيسبوك</label>
+                      <input
+                        type="url"
+                        value={restaurantFacebook}
+                        onChange={(e) => setRestaurantFacebook(e.target.value)}
+                        placeholder="https://facebook.com/..."
+                        className="w-full rounded-lg border border-surface bg-[#12211d] px-3 py-1.5 text-xs text-white focus:outline-none"
+                      />
+                    </div>
 
-                {menuPreviewUrl && (
-                  <div className="flex items-center gap-3 rounded-lg border border-surface/50 p-2 bg-[#0a1412]">
-                    <img
-                      src={menuPreviewUrl}
-                      alt="معاينة الصورة"
-                      className="h-12 w-12 rounded-lg object-cover"
-                    />
-                    <span className="text-[10px] text-gray-400">معاينة الصورة قبل الحفظ</span>
+                    <div>
+                      <label className="block text-[10px] text-gray-400 mb-1">رابط إنستجرام</label>
+                      <input
+                        type="url"
+                        value={restaurantInstagram}
+                        onChange={(e) => setRestaurantInstagram(e.target.value)}
+                        placeholder="https://instagram.com/..."
+                        className="w-full rounded-lg border border-surface bg-[#12211d] px-3 py-1.5 text-xs text-white focus:outline-none"
+                      />
+                    </div>
                   </div>
-                )}
 
-                <div className="text-center text-[10px] text-gray-500">أو ضع رابط صورة خارجي مباشرة</div>
+                  {restaurantInfoStatus && <div className="text-xs text-gold-bright">{restaurantInfoStatus}</div>}
 
-                <div>
-                  <input
-                    type="url"
-                    value={menuImageUrlInput}
-                    onChange={(e) => setMenuImageUrlInput(e.target.value)}
-                    placeholder="https://..."
-                    className="w-full rounded-lg border border-surface bg-[#12211d] px-3 py-1.5 text-xs text-white focus:outline-none"
-                  />
-                </div>
-
-                {menuStatus && <div className="text-xs text-gold-bright">{menuStatus}</div>}
-
-                <div className="flex gap-2">
                   <button
                     type="submit"
                     disabled={loading}
-                    className="flex-1 rounded-lg bg-gold-bright py-2 text-xs font-bold text-[#12211d] hover:brightness-110"
+                    className="w-full rounded-lg bg-gold-bright py-2 text-xs font-bold text-[#12211d] hover:brightness-110"
                   >
-                    {editMenuItem ? 'حفظ التعديلات' : 'إضافة الصنف'}
+                    حفظ معلومات المطعم
                   </button>
-                  {editMenuItem && (
-                    <button
-                      type="button"
-                      onClick={onClose}
-                      className="rounded-lg bg-surface px-4 py-2 text-xs font-bold text-white hover:bg-surface/80"
-                    >
-                      إلغاء
-                    </button>
-                  )}
-                </div>
-              </form>
-            </div>
-
-            {/* Section 2: Edit Restaurant Information */}
-            <div className="rounded-xl border border-surface p-4 bg-[#0d1815]">
-              <h4 className="flex items-center gap-2 text-sm font-bold text-gold-bright mb-3">
-                <Info size={16} /> تعديل بيانات ومعلومات المطعم
-              </h4>
-
-              <form onSubmit={handleUpdateRestaurantInfo} className="space-y-3">
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="block text-[10px] text-gray-400 mb-1">اسم المطعم</label>
-                    <input
-                      type="text"
-                      value={restaurantName}
-                      onChange={(e) => setRestaurantName(e.target.value)}
-                      placeholder="مطعم المروة"
-                      className="w-full rounded-lg border border-surface bg-[#12211d] px-3 py-2 text-xs text-white focus:outline-none"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[10px] text-gray-400 mb-1">الهاتف</label>
-                    <input
-                      type="text"
-                      value={restaurantPhone}
-                      onChange={(e) => setRestaurantPhone(e.target.value)}
-                      placeholder="01221365286"
-                      className="w-full rounded-lg border border-surface bg-[#12211d] px-3 py-2 text-xs text-white focus:outline-none"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="block text-[10px] text-gray-400 mb-1">العنوان</label>
-                    <input
-                      type="text"
-                      value={restaurantAddress}
-                      onChange={(e) => setRestaurantAddress(e.target.value)}
-                      placeholder="المرج الشرقية"
-                      className="w-full rounded-lg border border-surface bg-[#12211d] px-3 py-2 text-xs text-white focus:outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[10px] text-gray-400 mb-1">مواعيد العمل</label>
-                    <input
-                      type="text"
-                      value={restaurantWorkingHours}
-                      onChange={(e) => setRestaurantWorkingHours(e.target.value)}
-                      placeholder="يومياً 4ص - 4م"
-                      className="w-full rounded-lg border border-surface bg-[#12211d] px-3 py-2 text-xs text-white focus:outline-none"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-[10px] text-gray-400 mb-1">الوصف العام / الشعار</label>
-                  <textarea
-                    value={restaurantDesc}
-                    onChange={(e) => setRestaurantDesc(e.target.value)}
-                    placeholder="طعم أصيل من قلب القاهرة..."
-                    className="w-full rounded-lg border border-surface bg-[#12211d] px-3 py-2 text-xs text-white focus:outline-none h-16 resize-none"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="block text-[10px] text-gray-400 mb-1">رابط فيسبوك</label>
-                    <input
-                      type="url"
-                      value={restaurantFacebook}
-                      onChange={(e) => setRestaurantFacebook(e.target.value)}
-                      placeholder="https://facebook.com/..."
-                      className="w-full rounded-lg border border-surface bg-[#12211d] px-3 py-1.5 text-xs text-white focus:outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[10px] text-gray-400 mb-1">رابط إنستجرام</label>
-                    <input
-                      type="url"
-                      value={restaurantInstagram}
-                      onChange={(e) => setRestaurantInstagram(e.target.value)}
-                      placeholder="https://instagram.com/..."
-                      className="w-full rounded-lg border border-surface bg-[#12211d] px-3 py-1.5 text-xs text-white focus:outline-none"
-                    />
-                  </div>
-                </div>
-
-                {restaurantInfoStatus && <div className="text-xs text-gold-bright">{restaurantInfoStatus}</div>}
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full rounded-lg bg-gold-bright py-2 text-xs font-bold text-[#12211d] hover:brightness-110"
-                >
-                  حفظ معلومات المطعم
-                </button>
-              </form>
-            </div>
+                </form>
+              </div>
+            )}
 
             {/* Section 3: Upload Photo to Gallery */}
-            <div className="rounded-xl border border-surface p-4 bg-[#0d1815]">
-              <h4 className="flex items-center gap-2 text-sm font-bold text-gold-bright mb-3">
-                <Upload size={16} /> رفع صورة جديدة للمطعم والمعرض
-              </h4>
+            {!editMenuItem && activeTab === 'photos' && (
+              <div className="rounded-xl border border-surface p-4 bg-[#0d1815]">
+                <h4 className="flex items-center gap-2 text-sm font-bold text-gold-bright mb-3">
+                  <Upload size={16} /> رفع صورة جديدة للمطعم والمعرض
+                </h4>
 
-              <form onSubmit={handlePhotoUpload} className="space-y-3">
-                 <div>
-                   <label className="block text-xs text-gray-400 mb-1">اسم/وصف الصورة</label>
-                   <input
-                     type="text"
-                     value={photoCaption}
-                     onChange={(e) => setPhotoCaption(e.target.value)}
-                     placeholder="مثال: صالة الطعام الرئيسية"
-                     className="w-full rounded-lg border border-surface bg-[#12211d] px-3 py-2 text-xs text-white focus:outline-none"
-                   />
-                 </div>
+                <form onSubmit={handlePhotoUpload} className="space-y-3">
+                   <div>
+                     <label className="block text-xs text-gray-400 mb-1">اسم/وصف الصورة</label>
+                     <input
+                       type="text"
+                       value={photoCaption}
+                       onChange={(e) => setPhotoCaption(e.target.value)}
+                       placeholder="مثال: صالة الطعام الرئيسية"
+                       className="w-full rounded-lg border border-surface bg-[#12211d] px-3 py-2 text-xs text-white focus:outline-none"
+                     />
+                   </div>
 
-                 <div>
-                   <label className="block text-xs text-gold-bright mb-1 font-bold">مكان عرض الصورة (التصنيف)</label>
-                   <select
-                     value={photoCategory}
-                     onChange={(e) => setPhotoCategory(e.target.value)}
-                     className="w-full rounded-lg border border-surface bg-[#12211d] px-3 py-2 text-xs text-white focus:outline-none focus:border-gold-bright"
-                   >
-                     <option value="general">المعرض العام للأكلات</option>
-                     <option value="lambi">فريق العمل: معرض اللمبي</option>
-                     <option value="said">فريق العمل: معرض سعيد</option>
-                     <option value="nazer">فريق العمل: معرض ناظر</option>
-                   </select>
-                 </div>
+                   <div>
+                     <label className="block text-xs text-gold-bright mb-1 font-bold">مكان عرض الصورة (التصنيف)</label>
+                     <select
+                       value={photoCategory}
+                       onChange={(e) => setPhotoCategory(e.target.value)}
+                       className="w-full rounded-lg border border-surface bg-[#12211d] px-3 py-2 text-xs text-white focus:outline-none focus:border-gold-bright"
+                     >
+                       <option value="general">المعرض العام للأكلات</option>
+                       <option value="lambi">فريق العمل: معرض اللمبي</option>
+                       <option value="said">فريق العمل: معرض سعيد</option>
+                       <option value="nazer">فريق العمل: معرض ناظر</option>
+                     </select>
+                   </div>
 
-                <div>
-                  <label className="block text-xs text-gray-400 mb-1">اختر صورة من جهازك</label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handlePhotoFileChange}
-                    className="w-full text-xs text-gray-300 file:mr-2 file:rounded-lg file:border-0 file:bg-surface file:px-3 file:py-1.5 file:text-xs file:text-gold-bright hover:file:bg-surface/80"
-                  />
-                </div>
-
-                {photoPreviewUrl && (
-                  <div className="flex items-center gap-3 rounded-lg border border-surface/50 p-2 bg-[#0a1412]">
-                    <img
-                      src={photoPreviewUrl}
-                      alt="معاينة المعرض"
-                      className="h-12 w-12 rounded-lg object-cover"
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">اختر صورة من جهازك</label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handlePhotoFileChange}
+                      className="w-full text-xs text-gray-300 file:mr-2 file:rounded-lg file:border-0 file:bg-surface file:px-3 file:py-1.5 file:text-xs file:text-gold-bright hover:file:bg-surface/80"
                     />
-                    <span className="text-[10px] text-gray-400">معاينة الصورة قبل الحفظ</span>
                   </div>
-                )}
 
-                <div className="text-center text-[10px] text-gray-500">أو ضع رابط صورة خارجي</div>
+                  {photoPreviewUrl && (
+                    <div className="flex items-center gap-3 rounded-lg border border-surface/50 p-2 bg-[#0a1412]">
+                      <img
+                        src={photoPreviewUrl}
+                        alt="معاينة المعرض"
+                        className="h-12 w-12 rounded-lg object-cover"
+                      />
+                      <span className="text-[10px] text-gray-400">معاينة الصورة قبل الحفظ</span>
+                    </div>
+                  )}
 
-                <div>
-                  <input
-                    type="url"
-                    value={photoUrlInput}
-                    onChange={(e) => setPhotoUrlInput(e.target.value)}
-                    placeholder="https://..."
-                    className="w-full rounded-lg border border-surface bg-[#12211d] px-3 py-1.5 text-xs text-white focus:outline-none"
-                  />
-                </div>
+                  <div className="text-center text-[10px] text-gray-500">أو ضع رابط صورة خارجي</div>
 
-                {photoStatus && <div className="text-xs text-gold-bright">{photoStatus}</div>}
+                  <div>
+                    <input
+                      type="url"
+                      value={photoUrlInput}
+                      onChange={(e) => setPhotoUrlInput(e.target.value)}
+                      placeholder="https://..."
+                      className="w-full rounded-lg border border-surface bg-[#12211d] px-3 py-1.5 text-xs text-white focus:outline-none"
+                    />
+                  </div>
 
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full rounded-lg bg-gold-bright/90 py-2 text-xs font-bold text-[#12211d] hover:bg-gold-bright"
-                >
-                  حفظ ونشر الصورة
-                </button>
-              </form>
-            </div>
+                  {photoStatus && <div className="text-xs text-gold-bright">{photoStatus}</div>}
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full rounded-lg bg-gold-bright/90 py-2 text-xs font-bold text-[#12211d] hover:bg-gold-bright"
+                  >
+                    حفظ ونشر الصورة
+                  </button>
+                </form>
+              </div>
+            )}
 
             {/* Section 4: Publish Video */}
-            <div className="rounded-xl border border-surface p-4 bg-[#0d1815]">
-              <h4 className="flex items-center gap-2 text-sm font-bold text-gold-bright mb-3">
-                <Video size={16} /> نشر فيديو جديد (يوتيوب / تيك توك / فيسبوك)
-              </h4>
+            {!editMenuItem && activeTab === 'videos' && (
+              <div className="rounded-xl border border-surface p-4 bg-[#0d1815]">
+                <h4 className="flex items-center gap-2 text-sm font-bold text-gold-bright mb-3">
+                  <Video size={16} /> نشر فيديو جديد (يوتيوب / تيك توك / فيسبوك)
+                </h4>
 
-              <form onSubmit={handleAddVideo} className="space-y-3">
-                <div>
-                  <label className="block text-xs text-gray-400 mb-1">عنوان الفيديو</label>
-                  <input
-                    type="text"
-                    value={videoTitle}
-                    onChange={(e) => setVideoTitle(e.target.value)}
-                    placeholder="مثال: أحلى فطور شعبي في القاهرة"
-                    className="w-full rounded-lg border border-surface bg-[#12211d] px-3 py-2 text-xs text-white focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs text-gray-400 mb-1">اختر فيديو من جهازك</label>
-                  <input
-                    type="file"
-                    accept="video/*"
-                    onChange={handleVideoFileChange}
-                    className="w-full text-xs text-gray-300 file:mr-2 file:rounded-lg file:border-0 file:bg-surface file:px-3 file:py-1.5 file:text-xs file:text-gold-bright hover:file:bg-surface/80"
-                  />
-                </div>
-
-                {videoPreviewUrl && (
-                  <div className="rounded-lg border border-surface/50 p-2 bg-[#0a1412] space-y-2">
-                    <video
-                      src={videoPreviewUrl}
-                      controls
-                      className="w-full max-h-40 rounded-lg object-cover"
+                <form onSubmit={handleAddVideo} className="space-y-3">
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">عنوان الفيديو</label>
+                    <input
+                      type="text"
+                      value={videoTitle}
+                      onChange={(e) => setVideoTitle(e.target.value)}
+                      placeholder="مثال: أحلى فطور شعبي في القاهرة"
+                      className="w-full rounded-lg border border-surface bg-[#12211d] px-3 py-2 text-xs text-white focus:outline-none"
                     />
-                    <p className="text-[10px] text-gray-400 text-center">معاينة الفيديو قبل الرفع</p>
                   </div>
-                )}
 
-                <div className="text-center text-[10px] text-gray-500">أو ضع رابط فيديو خارجي</div>
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">اختر فيديو من جهازك</label>
+                    <input
+                      type="file"
+                      accept="video/*"
+                      onChange={handleVideoFileChange}
+                      className="w-full text-xs text-gray-300 file:mr-2 file:rounded-lg file:border-0 file:bg-surface file:px-3 file:py-1.5 file:text-xs file:text-gold-bright hover:file:bg-surface/80"
+                    />
+                  </div>
 
-                 <div>
-                   <label className="block text-xs text-gold-bright mb-1">رابط الفيديو</label>
-                   <input
-                     type="url"
-                     value={videoUrl}
-                     onChange={(e) => setVideoUrl(e.target.value)}
-                     placeholder="https://youtube.com/watch?v=..."
-                     className="w-full rounded-lg border border-surface bg-[#12211d] px-3 py-2 text-xs text-white focus:outline-none focus:border-gold-bright"
-                   />
-                   <p className="mt-1 text-[10px] text-gray-400">
-                     يدعم روابط فيسبوك (Reels & Watch)، يوتيوب (Shorts & Videos)، تيك توك، أو ملفات MP4 المباشرة.
-                   </p>
-                 </div>
+                  {videoPreviewUrl && (
+                    <div className="rounded-lg border border-surface/50 p-2 bg-[#0a1412] space-y-2">
+                      <video
+                        src={videoPreviewUrl}
+                        controls
+                        className="w-full max-h-40 rounded-lg object-cover"
+                      />
+                      <p className="text-[10px] text-gray-400 text-center">معاينة الفيديو قبل الرفع</p>
+                    </div>
+                  )}
 
-                <div>
-                  <label className="block text-xs text-gray-400 mb-1">وصف قصير (اختياري)</label>
-                  <input
-                    type="text"
-                    value={videoDesc}
-                    onChange={(e) => setVideoDesc(e.target.value)}
-                    placeholder="وصف الفيديو..."
-                    className="w-full rounded-lg border border-surface bg-[#12211d] px-3 py-2 text-xs text-white focus:outline-none"
-                  />
-                </div>
+                  <div className="text-center text-[10px] text-gray-500">أو ضع رابط فيديو خارجي</div>
 
-                {videoStatus && <div className="text-xs text-gold-bright">{videoStatus}</div>}
+                   <div>
+                     <label className="block text-xs text-gold-bright mb-1">رابط الفيديو</label>
+                     <input
+                       type="url"
+                       value={videoUrl}
+                       onChange={(e) => setVideoUrl(e.target.value)}
+                       placeholder="https://youtube.com/watch?v=..."
+                       className="w-full rounded-lg border border-surface bg-[#12211d] px-3 py-2 text-xs text-white focus:outline-none focus:border-gold-bright"
+                     />
+                     <p className="mt-1 text-[10px] text-gray-400">
+                       يدعم روابط فيسبوك (Reels & Watch)، يوتيوب (Shorts & Videos)، تيك توك، أو ملفات MP4 المباشرة.
+                     </p>
+                   </div>
 
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full rounded-lg bg-gold-bright/90 py-2 text-xs font-bold text-[#12211d] hover:bg-gold-bright"
-                >
-                  📹 نشر الفيديو
-                </button>
-              </form>
-            </div>
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">وصف قصير (اختياري)</label>
+                    <input
+                      type="text"
+                      value={videoDesc}
+                      onChange={(e) => setVideoDesc(e.target.value)}
+                      placeholder="وصف الفيديو..."
+                      className="w-full rounded-lg border border-surface bg-[#12211d] px-3 py-2 text-xs text-white focus:outline-none"
+                    />
+                  </div>
+
+                  {videoStatus && <div className="text-xs text-gold-bright">{videoStatus}</div>}
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full rounded-lg bg-gold-bright/90 py-2 text-xs font-bold text-[#12211d] hover:bg-gold-bright"
+                  >
+                    📹 نشر الفيديو
+                  </button>
+                </form>
+              </div>
+            )}
           </div>
         )}
       </div>
