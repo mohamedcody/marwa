@@ -1,10 +1,14 @@
-import { Clock, Leaf, MapPin, Star, UtensilsCrossed } from 'lucide-react';
+import { Clock, Hourglass, Leaf, MapPin, Star, UtensilsCrossed } from 'lucide-react';
 import type { PageId } from '../components/navItems';
 
+/**
+ * الخصائص (Props) الخاصة بالصفحة الرئيسية
+ */
 type HomePageProps = {
-  onNavigate: (page: PageId) => void;
+  onNavigate: (page: PageId) => void; // دالة التنقل إلى صفحة أخرى (مثل المنيو أو التواصل)
 };
 
+// مميزات المطعم المعروضة في قسم "ليه المروة؟"
 const features = [
   {
     icon: Leaf,
@@ -28,13 +32,37 @@ const features = [
   },
 ];
 
+// فروع المطعم ومواعيد العمل
+
 const branches = [
-  { name: 'فرع وسط البلد', address: 'شارع طلعت حرب، وسط البلد', hours: 'يومياً 6ص - 12ص' },
-  { name: 'فرع المعادي', address: 'شارع 9، المعادي', hours: 'يومياً 6ص - 12ص' },
-  { name: 'فرع مدينة نصر', address: 'شارع مكرم عبيد، مدينة نصر', hours: 'يومياً 6ص - 12ص' },
+  {
+    name: 'المرج الشرقية',
+    address: 'بجوار نادي المرج',
+    hours: 'يوميًا 4 ص - 4 م',
+  },
+  {
+    name: 'المرج الغربية',
+    address: 'بجوار مدرسة العين الخاصة',
+    hours: 'يوميًا 4 ص - 4 م',
+  },
+  {
+    name: 'المرج الغربية',
+    address: 'بجوار شارع العدل',
+    hours: 'يوميًا 4 ص - 4 م',
+  },
 ];
 
+/**
+ * مكون الصفحة الرئيسية (HomePage Component).
+ * تحتوي على:
+ * 1. قسم الواجهة البصرية الرئيسي (Hero Section) مع صورة الغلاف وأزرار التوجيه.
+ * 2. قسم المميزات (Features).
+ * 3. قسم اقتباس المطعم.
+ * 4. قسم عناوين الفروع ومواعيد العمل.
+ * 5. التذييل (Footer).
+ */
 export default function HomePage({ onNavigate }: HomePageProps) {
+
   return (
     <div className="pb-4">
       {/* Hero */}

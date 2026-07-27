@@ -4,6 +4,8 @@ export type Video = {
   poster: string;
   caption: string;
   author: string;
+  likes?: number;
+  views?: number;
 };
 
 // Vertical (portrait) stock videos from Pexels — TikTok-style feed
@@ -14,5 +16,7 @@ export const videos: Video[] = [
     poster: 'https://images.pexels.com/photos/3015510/pexels-photo-3015510.jpeg?auto=compress&cs=tinysrgb&w=800',
     caption: 'اسلام عوووفه تحضير جمبري',
     author: 'مطعم المروة',
+    likes: 42,
+    views: 185,
   },
 ];

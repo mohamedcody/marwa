@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Clock, Mail, MapPin, MessageCircle, Phone, X } from 'lucide-react';
+import { fetchRestaurantInfo, RestaurantInfoData } from '../services/api';
 
 // عدّل اللينكات دي بلينكاتك الحقيقية
 const socialLinks = {
@@ -32,12 +33,12 @@ function TikTokIcon() {
   );
 }
 
-function FloatingSocialButton() {
+function FloatingSocialButton({ facebookUrl }: { facebookUrl?: string }) {
   const [open, setOpen] = useState(false);
 
   const items = [
     { key: 'whatsapp', href: socialLinks.whatsapp, bg: '#25D366', icon: <WhatsAppIcon /> },
-    { key: 'facebook', href: socialLinks.facebook, bg: '#1877F2', icon: <FacebookIcon /> },
+    { key: 'facebook', href: facebookUrl || socialLinks.facebook, bg: '#1877F2', icon: <FacebookIcon /> },
     { key: 'tiktok', href: socialLinks.tiktok, bg: '#000000', icon: <TikTokIcon /> },
   ];
 
@@ -81,9 +82,21 @@ const branches = [
 ];
 
 export default function ContactPage() {
+  const [info, setInfo] = useState<RestaurantInfoData | null>(null);
+
+  useEffect(() => {
+    const loadInfo = async () => {
+      const data = await fetchRestaurantInfo();
+      if (data) {
+        setInfo(data);
+      }
+    };
+    loadInfo();
+  }, []);
+
   return (
     <div className="px-4 pb-32">
-      <FloatingSocialButton />
+      <FloatingSocialButton facebookUrl={info?.facebookUrl} />
       <div className="pt-20" />
       <h2 className="mb-2 text-2xl text-ivory">تواصل <span className="text-gold-bright">معنا</span></h2>
       <p className="mb-6 text-sm text-muted">يسعدنا خدمتك في أي وقت</p>
@@ -91,7 +104,7 @@ export default function ContactPage() {
       {/* Contact info */}
       <div className="flex flex-col gap-3">
         <a
-          href="tel:01000000000"
+          href={`tel:${info?.phoneNumber || '01221365286'}`}
           className="flex items-center gap-3 rounded-2xl border border-surface bg-surface/50 p-4 transition-colors hover:border-[var(--color-gold)]/40"
         >
           <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--color-maroon)]/30">
@@ -99,12 +112,12 @@ export default function ContactPage() {
           </span>
           <div>
             <p className="text-sm text-muted">اتصل بنا</p>
-            <p className="text-base text-ivory" dir="ltr">01221365286</p>
+            <p className="text-base text-ivory" dir="ltr">{info?.phoneNumber || '01221365286'}</p>
           </div>
         </a>
 
         <a
-          href="mailto:info@marwa-restaurant.eg"
+          href={`mailto:${info?.email || 'marwa-restaurant.eg@gmail.com'}`}
           className="flex items-center gap-3 rounded-2xl border border-surface bg-surface/50 p-4 transition-colors hover:border-[var(--color-gold)]/40"
         >
           <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--color-maroon)]/30">
@@ -112,7 +125,7 @@ export default function ContactPage() {
           </span>
           <div>
             <p className="text-sm text-muted">راسلنا</p>
-            <p className="text-base text-ivory" dir="ltr">marwa-restaurant.eg@gmail.com</p>
+            <p className="text-base text-ivory" dir="ltr">{info?.email || 'marwa-restaurant.eg@gmail.com'}</p>
           </div>
         </a>
 
@@ -122,7 +135,7 @@ export default function ContactPage() {
           </span>
           <div>
             <p className="text-sm text-muted">مواعيد العمل</p>
-            <p className="text-base text-ivory">يومياً4ص - 4م</p>
+            <p className="text-base text-ivory">{info?.workingHours || 'يومياً 4ص - 4م'}</p>
           </div>
         </div>
       </div>

@@ -1,21 +1,73 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ChevronLeft, ChevronRight, X } from 'lucide-react';
-import { photos } from '../data/photos';
+import { ChevronLeft, ChevronRight, X, Trash2 } from 'lucide-react';
+import { photos as initialPhotos } from '../data/photos';
+import { fetchPhotos, deletePhotoAPI, isAdminLoggedIn, PhotoData } from '../services/api';
 
+/**
+ * مكون صفحة معرض الصور (PhotosPage Component).
+ * يعرض جميع صور المطعم في شبكة تفاعلية، مع دعم العرض بملء الشاشة والتقليب بالسحب أو مفاتيح الأسهم، وإمكانية حذف الصور للأدمن.
+ */
 export default function PhotosPage() {
+  // قائمة الصور (تجلب ديناميكياً من الباك إند أو تستخدم القائمة المحلية الافتراضية)
+  const [photoList, setPhotoList] = useState<PhotoData[]>(initialPhotos);
+  // مؤشر الصورة المفتوحة بملء الشاشة (null إذا كانت مغلقة)
   const [fullscreenIdx, setFullscreenIdx] = useState<number | null>(null);
+  // حالة التحقق من صلاحيات الأدمن (محدثة تلقائياً)
+  const [isAdmin, setIsAdmin] = useState(isAdminLoggedIn());
 
+  useEffect(() => {
+    const checkAuth = () => setIsAdmin(isAdminLoggedIn());
+    window.addEventListener('auth_change', checkAuth);
+    return () => window.removeEventListener('auth_change', checkAuth);
+  }, []);
+
+
+  /**
+   * جلب الصور من الباك إند عند تحميل الصفحة
+   */
+  const loadPhotos = async () => {
+    const apiPhotos = await fetchPhotos();
+    if (apiPhotos && apiPhotos.length > 0) {
+      // عرض الصور العامة للأكلات فقط أو التي لا تمتلك تصنيفاً
+      const generalPhotos = apiPhotos.filter(p => !p.category || p.category === 'general');
+      setPhotoList(generalPhotos);
+    }
+  };
+
+  useEffect(() => {
+    loadPhotos();
+  }, []);
+
+  /**
+   * حذف صورة محددة من المعرض (خاص بالأدمن فقط)
+   */
+  const handleDeletePhoto = async (e: React.MouseEvent, id: string | number) => {
+    e.stopPropagation();
+    if (!confirm('هل أنت تأكد من رغبتك في حذف هذه الصورة؟')) return;
+    const ok = await deletePhotoAPI(id);
+    if (ok) {
+      setPhotoList((prev) => prev.filter((p) => p.id !== id));
+    } else {
+      // حذف محلي احتياطي في حال توقف الباك إند
+      setPhotoList((prev) => prev.filter((p) => p.id !== id));
+    }
+  };
+
+  // فتح وإغلاق الصورة بملء الشاشة
   const openFullscreen = (idx: number) => setFullscreenIdx(idx);
   const closeFullscreen = useCallback(() => setFullscreenIdx(null), []);
 
+  // التنقل للصورة التالية أو السابقة
   const next = useCallback(() => {
-    setFullscreenIdx((prev) => (prev === null ? null : (prev + 1) % photos.length));
-  }, []);
+    setFullscreenIdx((prev) => (prev === null ? null : (prev + 1) % photoList.length));
+  }, [photoList.length]);
+
   const prev = useCallback(() => {
     setFullscreenIdx((prev) =>
-      prev === null ? null : (prev - 1 + photos.length) % photos.length,
+      prev === null ? null : (prev - 1 + photoList.length) % photoList.length,
     );
-  }, []);
+  }, [photoList.length]);
+
 
   // Keyboard nav
   useEffect(() => {
@@ -44,16 +96,18 @@ export default function PhotosPage() {
   return (
     <div className="px-4 pb-4">
       <div className="pt-20" />
-      <h2 className="mb-4 text-2xl text-ivory">صور <span className="text-gold-bright">المطعم</span></h2>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-2xl text-ivory">صور <span className="text-gold-bright">المطعم</span></h2>
+        {isAdmin && <span className="text-xs text-gold-bright bg-surface px-2.5 py-1 rounded-full border border-gold-bright/30">أدمن: يمكنك الحذف</span>}
+      </div>
 
       {/* Grid */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        {photos.map((photo, idx) => (
-          <button
+        {photoList.map((photo, idx) => (
+          <div
             key={photo.id}
             onClick={() => openFullscreen(idx)}
-            className="group relative aspect-square overflow-hidden rounded-2xl border border-surface"
-            aria-label={`فتح صورة: ${photo.caption}`}
+            className="group relative aspect-square cursor-pointer overflow-hidden rounded-2xl border border-surface"
           >
             <img
               src={photo.src}
@@ -62,17 +116,28 @@ export default function PhotosPage() {
               className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-[#12211d]/80 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
-            <p className="absolute bottom-2 right-2 text-right text-xs text-ivory opacity-0 transition-opacity group-hover:opacity-100">
+            
+            <p className="absolute bottom-2 right-2 left-2 text-right text-xs text-ivory opacity-0 transition-opacity group-hover:opacity-100 truncate">
               {photo.caption}
             </p>
-          </button>
+
+            {isAdmin && (
+              <button
+                onClick={(e) => handleDeletePhoto(e, photo.id)}
+                className="absolute top-2 left-2 flex h-8 w-8 items-center justify-center rounded-full bg-red-600/90 text-white shadow-lg transition hover:bg-red-700 z-10"
+                title="حذف الصورة"
+              >
+                <Trash2 size={16} />
+              </button>
+            )}
+          </div>
         ))}
       </div>
 
       {/* Fullscreen swipeable viewer */}
-      {fullscreenIdx !== null && (
+      {fullscreenIdx !== null && photoList.length > 0 && (
         <FullscreenViewer
-          photos={photos}
+          photos={photoList}
           index={fullscreenIdx}
           onIndexChange={setFullscreenIdx}
           onClose={closeFullscreen}
@@ -85,7 +150,7 @@ export default function PhotosPage() {
 }
 
 type FullscreenViewerProps = {
-  photos: typeof photos;
+  photos: PhotoData[];
   index: number;
   onIndexChange: (idx: number) => void;
   onClose: () => void;
@@ -156,6 +221,8 @@ function FullscreenViewer({
     setTranslateX(0);
   };
 
+  const currentPhoto = photos[index] || photos[0];
+
   return (
     <div
       className="fixed inset-0 z-[100] flex flex-col bg-black"
@@ -195,18 +262,20 @@ function FullscreenViewer({
             transition: isDragging.current ? 'none' : 'transform 0.3s ease',
           }}
         >
-          <img
-            src={photos[index].src}
-            alt={photos[index].caption}
-            className="max-h-full max-w-full object-contain"
-            draggable={false}
-          />
+          {currentPhoto && (
+            <img
+              src={currentPhoto.src}
+              alt={currentPhoto.caption}
+              className="max-h-full max-w-full object-contain"
+              draggable={false}
+            />
+          )}
         </div>
       </div>
 
       {/* Caption */}
       <div className="absolute bottom-0 left-0 right-0 px-6 pb-8 pt-4 bg-gradient-to-t from-black/70 to-transparent" style={{ paddingBottom: 'max(2rem, env(safe-area-inset-bottom))' }}>
-        <p className="text-center text-base text-white">{photos[index].caption}</p>
+        <p className="text-center text-base text-white">{currentPhoto?.caption}</p>
       </div>
 
       {/* Arrow buttons (desktop) */}

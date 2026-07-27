@@ -1,10 +1,17 @@
 import { navItems, type PageId } from './navItems';
 
+/**
+ * الخصائص (Props) الخاصة بمكون شريط التنقل السفلي
+ */
 type BottomNavProps = {
-  current: PageId;
-  onNavigate: (page: PageId) => void;
+  current: PageId; // الصفحة النشطة حالياً
+  onNavigate: (page: PageId) => void; // دالة التنقل بين الصفحات
 };
 
+/**
+ * مكون شريط التنقل السفلي للهواتف والشاشات (Bottom Navigation Component).
+ * يعرض أيقونات التنقل الرئيسية في أسفل الشاشة مع مؤشر ملون ينشط مع الصفحة الحالية.
+ */
 export default function BottomNav({ current, onNavigate }: BottomNavProps) {
   return (
     <nav
@@ -12,6 +19,7 @@ export default function BottomNav({ current, onNavigate }: BottomNavProps) {
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
       <ul className="mx-auto flex max-w-2xl items-stretch justify-around">
+        {/* التكرار على جميع عناصر القائمة لإنشاء أزرار التنقل */}
         {navItems.map((item) => {
           const Icon = item.icon;
           const active = current === item.id;
@@ -23,11 +31,13 @@ export default function BottomNav({ current, onNavigate }: BottomNavProps) {
                 aria-label={item.label}
                 aria-current={active ? 'page' : undefined}
               >
+                {/* الخط الذهبي السفلي لتأكيد اختيار الصفحة */}
                 <span
                   className={`absolute top-0 h-0.5 rounded-full bg-[var(--color-gold-bright)] transition-all duration-300 ${
                     active ? 'w-8 opacity-100' : 'w-0 opacity-0'
                   }`}
                 />
+                {/* أيقونة الصفحة */}
                 <Icon
                   size={22}
                   className={`transition-colors duration-300 ${
@@ -36,6 +46,7 @@ export default function BottomNav({ current, onNavigate }: BottomNavProps) {
                       : 'text-[var(--color-muted)] group-hover:text-[var(--color-ivory)]'
                   }`}
                 />
+                {/* اسم الصفحة */}
                 <span
                   className={`text-[10px] font-semibold transition-colors duration-300 ${
                     active
@@ -53,3 +64,4 @@ export default function BottomNav({ current, onNavigate }: BottomNavProps) {
     </nav>
   );
 }
+
