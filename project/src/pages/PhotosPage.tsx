@@ -1,13 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ChevronLeft, ChevronRight, X, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, Trash2, Plus } from 'lucide-react';
 import { photos as initialPhotos } from '../data/photos';
 import { fetchPhotos, deletePhotoAPI, isAdminLoggedIn, PhotoData } from '../services/api';
+
+interface PhotosPageProps {
+  onAddPhoto?: () => void;
+}
 
 /**
  * مكون صفحة معرض الصور (PhotosPage Component).
  * يعرض جميع صور المطعم في شبكة تفاعلية، مع دعم العرض بملء الشاشة والتقليب بالسحب أو مفاتيح الأسهم، وإمكانية حذف الصور للأدمن.
  */
-export default function PhotosPage() {
+export default function PhotosPage({ onAddPhoto }: PhotosPageProps = {}) {
   // قائمة الصور (تجلب ديناميكياً من الباك إند أو تستخدم القائمة المحلية الافتراضية)
   const [photoList, setPhotoList] = useState<PhotoData[]>(initialPhotos);
   // مؤشر الصورة المفتوحة بملء الشاشة (null إذا كانت مغلقة)
@@ -98,8 +102,18 @@ export default function PhotosPage() {
       <div className="pt-20" />
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-2xl text-ivory">صور <span className="text-gold-bright">المطعم</span></h2>
-        {isAdmin && <span className="text-xs text-gold-bright bg-surface px-2.5 py-1 rounded-full border border-gold-bright/30">أدمن: يمكنك الحذف</span>}
+        {isAdmin && <span className="text-xs text-gold-bright bg-surface px-2.5 py-1 rounded-full border border-gold-bright/30">أدمن: يمكنك الحذف/الإضافة</span>}
       </div>
+
+      {isAdmin && onAddPhoto && (
+        <button
+          onClick={onAddPhoto}
+          className="mb-4 w-full flex items-center justify-center gap-2 rounded-2xl bg-gold-bright py-3 text-sm font-bold text-[#12211d] shadow-lg transition hover:brightness-110"
+        >
+          <Plus size={18} />
+          <span>إضافة صورة جديدة للمعرض</span>
+        </button>
+      )}
 
       {/* Grid */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">

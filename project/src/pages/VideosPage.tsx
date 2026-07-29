@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Heart, Play, Share2, Eye, Trash2 } from 'lucide-react';
+import { Heart, Play, Share2, Eye, Trash2, Plus } from 'lucide-react';
 import { videos as initialVideos } from '../data/videos';
 import { fetchVideos, deleteVideoAPI, isAdminLoggedIn, likeVideoAPI, viewVideoAPI, shareVideoAPI } from '../services/api';
+
+interface VideosPageProps {
+  onAddVideo?: () => void;
+}
 
 /**
  * دالة مساعدة لتحديد نوع الرابط وتوليد رابط التضمين المناسب (Embed URL).
@@ -42,7 +46,7 @@ function getEmbedInfo(url: string) {
   return { type: 'native', url };
 }
 
-export default function VideosPage() {
+export default function VideosPage({ onAddVideo }: VideosPageProps = {}) {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const [activeIdx, setActiveIdx] = useState(0);
@@ -202,7 +206,7 @@ export default function VideosPage() {
         return nextCounts;
       });
 
-      likeVideoAPI(id, isLiked ? -1 : 1);
+      likeVideoAPI(id);
 
       return nextLikes;
     });
@@ -302,6 +306,17 @@ export default function VideosPage() {
                 title="حذف الفيديو"
               >
                 <Trash2 size={18} />
+              </button>
+            )}
+
+            {/* Add button for admin */}
+            {isAdmin && onAddVideo && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onAddVideo(); }}
+                className="absolute top-4 right-4 z-40 flex h-10 w-10 items-center justify-center rounded-full bg-gold-bright text-[#12211d] shadow-lg transition hover:brightness-110"
+                title="إضافة فيديو جديد"
+              >
+                <Plus size={18} />
               </button>
             )}
 

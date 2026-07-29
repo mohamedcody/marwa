@@ -20,10 +20,20 @@ export default function App() {
   const [page, setPage] = useState<PageId>('home');
   // حالة فتح/إغلاق نافذة لوحة تحكم المسؤول (Admin Modal)
   const [isAdminOpen, setIsAdminOpen] = useState(false);
+  // تبويب لوحة تحكم المسؤول النشط افتراضياً عند الفتح
+  const [adminTab, setAdminTab] = useState<'menu' | 'photos' | 'videos' | 'info'>('menu');
   // مفتاح لتحديث البيانات بعد إجراء تعديلات من قبل المسؤول
   const [refreshKey, setRefreshKey] = useState(0);
   // حالة العنصر المختار للتعديل في قائمة الطعام
   const [editMenuItem, setEditMenuItem] = useState<MenuItemData | null>(null);
+
+  /**
+   * دالة فتح لوحة التحكم مع تبويب محدد
+   */
+  const openAdminWithTab = (tab: 'menu' | 'photos' | 'videos' | 'info') => {
+    setAdminTab(tab);
+    setIsAdminOpen(true);
+  };
 
   /**
    * دالة التنقل بين الصفحات مع التمرير التلقائي لأعلى الصفحة
@@ -63,7 +73,7 @@ export default function App() {
         <Header
           current={page}
           onNavigate={navigate}
-          onOpenAdmin={() => setIsAdminOpen(true)}
+          onOpenAdmin={() => openAdminWithTab('menu')}
         />
       )}
 
@@ -76,10 +86,11 @@ export default function App() {
               setEditMenuItem(item);
               setIsAdminOpen(true);
             }}
+            onAddItem={() => openAdminWithTab('menu')}
           />
         )}
-        {page === 'photos' && <PhotosPage />}
-        {page === 'videos' && <VideosPage />}
+        {page === 'photos' && <PhotosPage onAddPhoto={() => openAdminWithTab('photos')} />}
+        {page === 'videos' && <VideosPage onAddVideo={() => openAdminWithTab('videos')} />}
         {page === 'team' && <TeamPage />}
         {page === 'contact' && <ContactPage />}
       </main>
@@ -95,6 +106,7 @@ export default function App() {
           setEditMenuItem(null);
         }}
         editMenuItem={editMenuItem}
+        defaultTab={adminTab}
         onRefreshData={handleRefreshData}
       />
     </div>

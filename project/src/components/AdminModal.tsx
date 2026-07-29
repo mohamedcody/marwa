@@ -23,12 +23,13 @@ interface AdminModalProps {
   onClose: () => void; // دالة إغلاق النافذة
   onRefreshData?: () => void; // دالة تحديث بيانات المعرض أو المنيو بعد الإضافة
   editMenuItem?: MenuItemData | null; // الصنف المختار للتعديل (في حالة وضع التعديل)
+  defaultTab?: 'menu' | 'photos' | 'videos' | 'info'; // التبويب الافتراضي عند فتح اللوحة
 }
 
 /**
  * مكون النافذة المنبثقة لـ لوحة تحكم الأدمن (AdminModal Component).
  */
-export default function AdminModal({ isOpen, onClose, onRefreshData, editMenuItem }: AdminModalProps) {
+export default function AdminModal({ isOpen, onClose, onRefreshData, editMenuItem, defaultTab }: AdminModalProps) {
   // حالات تسجل الدخول وحفظ التوكن
   const [loggedIn, setLoggedIn] = useState(isAdminLoggedIn());
   const [username, setUsername] = useState('');
@@ -64,6 +65,13 @@ export default function AdminModal({ isOpen, onClose, onRefreshData, editMenuIte
 
   // حالة التبويب النشط في لوحة التحكم
   const [activeTab, setActiveTab] = useState<'menu' | 'photos' | 'videos' | 'info'>('menu');
+
+  // تعيين التبويب النشط بناء على التبويب الافتراضي الممرر عند فتح المودال
+  useEffect(() => {
+    if (isOpen && defaultTab) {
+      setActiveTab(defaultTab);
+    }
+  }, [isOpen, defaultTab]);
 
   // حالات نموذج معلومات المطعم
   const [restaurantName, setRestaurantName] = useState('');

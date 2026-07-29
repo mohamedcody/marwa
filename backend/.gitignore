@@ -1,0 +1,19 @@
+# Environment variables
+.env
+.env.local
+
+# Maven build artifacts
+target/
+*.jar
+*.war
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+.settings/
+.project/
+.classpath/
+
+# Log files
+*.log

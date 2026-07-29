@@ -5,9 +5,40 @@
  * 2. رفع وتخزين الصور على الخادم.
  * 3. إضافة/عرض/حذف أصناف المنيو.
  * 4. إضافة/عرض/حذف صور المعرض.
+ * 5. إدارة الفيديوهات والتفاعلات الحقيقية.
  */
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
+
+// === معرف المستخدم الفريد (لتتبع الإعجابات والمشاهدات) ===
+const getUserId = (): string => {
+  let userId = localStorage.getItem('marwa_user_id');
+  if (!userId) {
+    userId = 'user_' + Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
+    localStorage.setItem('marwa_user_id', userId);
+  }
+  return userId;
+};
+
+// === Helper: إضافة headers مشتركة لكل request ===
+const createHeaders = (includeAuth = false, isJson = true): HeadersInit => {
+  const headers: Record<string, string> = {
+    'ngrok-skip-browser-warning': 'true',
+    'X-User-Id': getUserId(),
+  };
+  if (isJson) {
+    headers['Content-Type'] = 'application/json';
+  }
+  if (includeAuth) {
+    const token = getAdminToken();
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+  }
+  return headers;
+};
+
+// === Interfaces ===
 
 export interface PhotoData {
   id: string | number;
@@ -15,7 +46,6 @@ export interface PhotoData {
   caption: string;
   category?: string;
 }
-
 
 export interface MenuItemData {
   id: string | number;
@@ -37,41 +67,95 @@ export interface RestaurantInfoData {
   instagramUrl?: string;
 }
 
-// Auth helpers
-// جلب رمز المسؤول (Token) المخزن في متصفح المستخدم للتحقق من الصلاحيات
+export interface VideoData {
+  id: string | number;
+  title: string;
+  videoUrl: string;
+  description?: string;
+  likes?: number;
+  views?: number;
+  shares?: number;
+  userLiked?: boolean;
+}
+
+// === Auth helpers ===
+
+/** فك تشفير JWT payload (بدون مكتبة خارجية) */
+const decodeJwtPayload = (token: string): Record<string, any> | null => {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    const payload = atob(parts[1].replace(/-/g, '+').replace(/_/g, '/'));
+    return JSON.parse(payload);
+  } catch {
+    return null;
+  }
+};
+
+/** جلب رمز المسؤول (Token) المخزن في متصفح المستخدم */
 export const getAdminToken = (): string | null => {
   const token = localStorage.getItem('marwa_admin_token');
   if (!token || token === 'undefined' || token === 'null' || token.trim() === '') {
     return null;
   }
+  // التحقق من انتهاء صلاحية التوكن
+  const payload = decodeJwtPayload(token);
+  if (payload && payload.exp) {
+    const now = Math.floor(Date.now() / 1000);
+    if (payload.exp < now) {
+      localStorage.removeItem('marwa_admin_token');
+      return null;
+    }
+  }
   return token;
 };
 
-// حفظ رمز المسؤول (Token) في المتصفح لاستخدامه في الطلبات اللاحقة
+/** حفظ رمز المسؤول (Token) في المتصفح */
 export const setAdminToken = (token: string) => localStorage.setItem('marwa_admin_token', token);
 
-// مسح رمز المسؤول (Token) لتسجيل الخروج وتحويل الموقع إلى العرض التعريفي فقط
+/** مسح رمز المسؤول (Token) لتسجيل الخروج */
 export const removeAdminToken = () => {
   localStorage.removeItem('marwa_admin_token');
   window.dispatchEvent(new Event('auth_change'));
 };
 
-// التحقق مما إذا كان المستخدم أدمن مصرح له بالتعديل (يرجع true فقط إذا وُجد توكن صالح)
-export const isAdminLoggedIn = (): boolean => getAdminToken() !== null;
+/** التحقق مما إذا كان المستخدم مسؤول (Admin) بقراءة الصلاحية من التوكن */
+export const isAdminLoggedIn = (): boolean => {
+  const token = getAdminToken();
+  if (!token) return false;
+  const payload = decodeJwtPayload(token);
+  if (!payload) return false;
+  const role = payload.role || '';
+  return role === 'ROLE_ADMIN' || role === 'ADMIN';
+};
 
-// Auth API
-// إرسال طلب تسجيل دخول المسؤول برقم الهاتـف أو اسم المستخدم وكلمة المرور
+/** استخراج صلاحية المستخدم من التوكن */
+export const getUserRole = (): string | null => {
+  const token = getAdminToken();
+  if (!token) return null;
+  const payload = decodeJwtPayload(token);
+  return payload?.role || null;
+};
+
+// === Auth API ===
+
 export const loginAdmin = async (usernameOrPhone: string, password?: string): Promise<{ success: boolean; message?: string }> => {
   try {
     const res = await fetch(`${API_BASE_URL}/auth/login`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: createHeaders(false, true),
       body: JSON.stringify({ username: usernameOrPhone, password: password || '' }),
     });
 
     if (!res.ok) {
-      const errText = await res.text();
-      return { success: false, message: errText || 'رقم الهاتـف أو كلمة المرور غير صحيحة' };
+      let errMsg = 'رقم الهاتـف أو كلمة المرور غير صحيحة';
+      try {
+        const errData = await res.json();
+        errMsg = errData.error || errData.message || errMsg;
+      } catch {
+        // fallback to default error
+      }
+      return { success: false, message: errMsg };
     }
     const data = await res.json();
     if (data.token) {
@@ -86,10 +170,8 @@ export const loginAdmin = async (usernameOrPhone: string, password?: string): Pr
   }
 };
 
+// === File Upload API ===
 
-
-// File Upload API
-// رفع ملف (صورة أو فيديو) إلى خادم الباك إند ويرجع رابط الملف الجديد
 export const uploadFileAPI = async (file: File): Promise<string | null> => {
   const token = getAdminToken();
   if (!token) return null;
@@ -102,30 +184,34 @@ export const uploadFileAPI = async (file: File): Promise<string | null> => {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
+        'ngrok-skip-browser-warning': 'true',
+        'X-User-Id': getUserId(),
       },
       body: formData,
     });
 
-    if (!res.ok) throw new Error('فشل رفع الملف');
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.error || 'فشل رفع الملف');
+    }
     const data = await res.json();
     return data.url || null;
   } catch (err) {
-    console.error(err);
+    console.error('Upload error:', err);
     return null;
   }
 };
 
-// للتوافق مع الكود القديم
 export const uploadImageFile = uploadFileAPI;
 
-// Photos API
-// جلب قائمة الصور الخاصة بالمعرض من الباك إند
+// === Photos API ===
+
 export const fetchPhotos = async (category?: string): Promise<PhotoData[]> => {
   try {
     const url = category
       ? `${API_BASE_URL}/photos?category=${encodeURIComponent(category)}`
       : `${API_BASE_URL}/photos`;
-    const res = await fetch(url);
+    const res = await fetch(url, { headers: createHeaders(false, false) });
     if (!res.ok) throw new Error('Failed to fetch photos');
     const data = await res.json();
     return data.map((item: any) => ({
@@ -135,11 +221,11 @@ export const fetchPhotos = async (category?: string): Promise<PhotoData[]> => {
       category: item.category || 'general',
     }));
   } catch (err) {
+    console.error('Fetch photos error:', err);
     return [];
   }
 };
 
-// إضافة صورة جديدة للمعرض في الباك إند (يطلب التوكن الخاص بالمسؤول)
 export const addPhotoAPI = async (caption: string, src: string, category?: string): Promise<PhotoData | null> => {
   const token = getAdminToken();
   if (!token) return null;
@@ -147,14 +233,14 @@ export const addPhotoAPI = async (caption: string, src: string, category?: strin
   try {
     const res = await fetch(`${API_BASE_URL}/photos`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
+      headers: createHeaders(true),
       body: JSON.stringify({ caption, src, category }),
     });
 
-    if (!res.ok) throw new Error('فشل إضافة الصورة');
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.message || 'فشل إضافة الصورة');
+    }
     const item = await res.json();
     return { id: String(item.id), src: item.src, caption: item.caption, category: item.category };
   } catch (err) {
@@ -163,7 +249,6 @@ export const addPhotoAPI = async (caption: string, src: string, category?: strin
   }
 };
 
-// حذف صورة معينة من المعرض في الباك إند باستخدام المعرف (ID)
 export const deletePhotoAPI = async (id: string | number): Promise<boolean> => {
   const token = getAdminToken();
   if (!token) return false;
@@ -171,9 +256,7 @@ export const deletePhotoAPI = async (id: string | number): Promise<boolean> => {
   try {
     const res = await fetch(`${API_BASE_URL}/photos/${id}`, {
       method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: createHeaders(true, false),
     });
     return res.ok;
   } catch (err) {
@@ -182,11 +265,11 @@ export const deletePhotoAPI = async (id: string | number): Promise<boolean> => {
   }
 };
 
-// Menu API
-// جلب جميع أصناف قائمة الطعام من الباك إند
+// === Menu API ===
+
 export const fetchMenuItems = async (): Promise<MenuItemData[]> => {
   try {
-    const res = await fetch(`${API_BASE_URL}/menu`);
+    const res = await fetch(`${API_BASE_URL}/menu`, { headers: createHeaders(false, false) });
     if (!res.ok) throw new Error('Failed to fetch menu');
     const data = await res.json();
     return data.map((item: any) => ({
@@ -198,11 +281,11 @@ export const fetchMenuItems = async (): Promise<MenuItemData[]> => {
       imageUrl: item.imageUrl,
     }));
   } catch (err) {
+    console.error('Fetch menu error:', err);
     return [];
   }
 };
 
-// إضافة صنف جديد إلى قائمة الطعام في الباك إند (يطلب التوكن الخاص بالمسؤول)
 export const addMenuItemAPI = async (
   name: string,
   price: number,
@@ -216,14 +299,14 @@ export const addMenuItemAPI = async (
   try {
     const res = await fetch(`${API_BASE_URL}/menu`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
+      headers: createHeaders(true),
       body: JSON.stringify({ name, price, categoryId, description, imageUrl }),
     });
 
-    if (!res.ok) throw new Error('فشل إضافة الصنف');
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.message || 'فشل إضافة الصنف');
+    }
     const item = await res.json();
     return {
       id: String(item.id),
@@ -239,7 +322,6 @@ export const addMenuItemAPI = async (
   }
 };
 
-// تعديل صنف موجود في قائمة الطعام (يطلب التوكن الخاص بالمسؤول)
 export const updateMenuItemAPI = async (
   id: string | number,
   name: string,
@@ -254,14 +336,14 @@ export const updateMenuItemAPI = async (
   try {
     const res = await fetch(`${API_BASE_URL}/menu/${id}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
+      headers: createHeaders(true),
       body: JSON.stringify({ name, price, categoryId, description, imageUrl }),
     });
 
-    if (!res.ok) throw new Error('فشل تعديل الصنف');
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.message || 'فشل تعديل الصنف');
+    }
     const item = await res.json();
     return {
       id: String(item.id),
@@ -277,7 +359,6 @@ export const updateMenuItemAPI = async (
   }
 };
 
-// حذف صنف معين من قائمة الطعام في الباك إند باستخدام المعرف (ID)
 export const deleteMenuItemAPI = async (id: string | number): Promise<boolean> => {
   const token = getAdminToken();
   if (!token) return false;
@@ -285,9 +366,7 @@ export const deleteMenuItemAPI = async (id: string | number): Promise<boolean> =
   try {
     const res = await fetch(`${API_BASE_URL}/menu/${id}`, {
       method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: createHeaders(true, false),
     });
     return res.ok;
   } catch (err) {
@@ -296,11 +375,11 @@ export const deleteMenuItemAPI = async (id: string | number): Promise<boolean> =
   }
 };
 
-// Restaurant Info API
-// جلب معلومات الملف التعريفي للمطعم من الباك إند
+// === Restaurant Info API ===
+
 export const fetchRestaurantInfo = async (): Promise<RestaurantInfoData | null> => {
   try {
-    const res = await fetch(`${API_BASE_URL}/info`);
+    const res = await fetch(`${API_BASE_URL}/info`, { headers: createHeaders(false, false) });
     if (!res.ok) throw new Error('Failed to fetch restaurant info');
     return await res.json();
   } catch (err) {
@@ -309,7 +388,6 @@ export const fetchRestaurantInfo = async (): Promise<RestaurantInfoData | null> 
   }
 };
 
-// تعديل معلومات المطعم (يطلب التوكن الخاص بالمسؤول)
 export const updateRestaurantInfoAPI = async (data: RestaurantInfoData): Promise<RestaurantInfoData | null> => {
   const token = getAdminToken();
   if (!token) return null;
@@ -317,10 +395,7 @@ export const updateRestaurantInfoAPI = async (data: RestaurantInfoData): Promise
   try {
     const res = await fetch(`${API_BASE_URL}/admin/info`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
+      headers: createHeaders(true),
       body: JSON.stringify(data),
     });
 
@@ -332,21 +407,11 @@ export const updateRestaurantInfoAPI = async (data: RestaurantInfoData): Promise
   }
 };
 
-// Video API
-export interface VideoData {
-  id: string | number;
-  title: string;
-  videoUrl: string;
-  description?: string;
-  likes?: number;
-  views?: number;
-  shares?: number;
-}
+// === Video API ===
 
-// جلب جميع الفيديوهات من الباك إند
 export const fetchVideos = async (): Promise<VideoData[]> => {
   try {
-    const res = await fetch(`${API_BASE_URL}/videos`);
+    const res = await fetch(`${API_BASE_URL}/videos`, { headers: createHeaders(false, false) });
     if (!res.ok) throw new Error('فشل جلب الفيديوهات');
     const data = await res.json();
     return data.map((v: any) => ({
@@ -357,13 +422,14 @@ export const fetchVideos = async (): Promise<VideoData[]> => {
       likes: v.likes || 0,
       views: v.views || 0,
       shares: v.shares || 0,
+      userLiked: v.userLiked || false,
     }));
   } catch (err) {
+    console.error('Fetch videos error:', err);
     return [];
   }
 };
 
-// إضافة فيديو جديد في الباك إند (يطلب توكن الأدمن)
 export const addVideoAPI = async (title: string, videoUrl: string, description?: string): Promise<VideoData | null> => {
   const token = getAdminToken();
   if (!token) return null;
@@ -371,10 +437,7 @@ export const addVideoAPI = async (title: string, videoUrl: string, description?:
   try {
     const res = await fetch(`${API_BASE_URL}/videos`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
+      headers: createHeaders(true),
       body: JSON.stringify({ title, videoUrl, description }),
     });
 
@@ -395,7 +458,6 @@ export const addVideoAPI = async (title: string, videoUrl: string, description?:
   }
 };
 
-// حذف فيديو باستخدام المعرف (ID)
 export const deleteVideoAPI = async (id: string | number): Promise<boolean> => {
   const token = getAdminToken();
   if (!token) return false;
@@ -403,9 +465,7 @@ export const deleteVideoAPI = async (id: string | number): Promise<boolean> => {
   try {
     const res = await fetch(`${API_BASE_URL}/videos/${id}`, {
       method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: createHeaders(true, false),
     });
     return res.ok;
   } catch (err) {
@@ -414,11 +474,12 @@ export const deleteVideoAPI = async (id: string | number): Promise<boolean> => {
   }
 };
 
-// زيادة عدد الإعجابات بفيديو في الباك إند
-export const likeVideoAPI = async (id: string | number, amount = 1): Promise<VideoData | null> => {
+/** تبديل حالة الإعجاب (Like/Unlike) — يرجع حالة الإعجاب الجديدة */
+export const likeVideoAPI = async (id: string | number): Promise<VideoData | null> => {
   try {
-    const res = await fetch(`${API_BASE_URL}/videos/${id}/like?amount=${amount}`, {
+    const res = await fetch(`${API_BASE_URL}/videos/${id}/like`, {
       method: 'POST',
+      headers: createHeaders(false, false),
     });
     if (!res.ok) throw new Error('فشل تسجيل الإعجاب');
     return await res.json();
@@ -428,11 +489,12 @@ export const likeVideoAPI = async (id: string | number, amount = 1): Promise<Vid
   }
 };
 
-// زيادة عدد المشاهدات لفيديو في الباك إند
+/** تسجيل مشاهدة فيديو (مع throttle في الباك إند) */
 export const viewVideoAPI = async (id: string | number): Promise<VideoData | null> => {
   try {
     const res = await fetch(`${API_BASE_URL}/videos/${id}/view`, {
       method: 'POST',
+      headers: createHeaders(false, false),
     });
     if (!res.ok) throw new Error('فشل تسجيل المشاهدة');
     return await res.json();
@@ -442,11 +504,12 @@ export const viewVideoAPI = async (id: string | number): Promise<VideoData | nul
   }
 };
 
-// زيادة عدد المشاركات لفيديو في الباك إند
-export const shareVideoAPI = async (id: string | number): Promise<VideoData | null> => {
+/** تسجيل مشاركة فيديو */
+export const shareVideoAPI = async (id: string | number, platform = 'unknown'): Promise<VideoData | null> => {
   try {
-    const res = await fetch(`${API_BASE_URL}/videos/${id}/share`, {
+    const res = await fetch(`${API_BASE_URL}/videos/${id}/share?platform=${encodeURIComponent(platform)}`, {
       method: 'POST',
+      headers: createHeaders(false, false),
     });
     if (!res.ok) throw new Error('فشل تسجيل المشاركة');
     return await res.json();
@@ -455,4 +518,3 @@ export const shareVideoAPI = async (id: string | number): Promise<VideoData | nu
     return null;
   }
 };
-
