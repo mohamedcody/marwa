@@ -18,12 +18,19 @@ export default function TeamPage() {
               .filter(p => p.category === member.id)
               .map(p => p.src);
             
+            // استخراج صورة الغلاف إذا كانت موجودة
+            const coverPhoto = apiPhotos
+              .filter(p => p.category === `${member.id}_cover`)
+              .map(p => p.src)
+              .pop(); // نأخذ آخر صورة غلاف تم رفعها
+            
             // دمج الصور الجديدة مع الصور الافتراضية الثابتة دون تكرار
             const updatedGallery = Array.from(new Set([...memberPhotos, ...member.gallery]));
             
             return {
               ...member,
-              gallery: updatedGallery
+              gallery: updatedGallery,
+              avatar: coverPhoto || member.avatar, // استبدال الصورة الشخصية بصورة الغلاف إن وجدت
             };
           })
         );
@@ -35,8 +42,8 @@ export default function TeamPage() {
   return (
     <div className="px-4 pb-4">
       <div className="pt-20" />
-      <h2 className="mb-2 text-2xl text-ivory">فريق <span className="text-gold-bright">العمل</span></h2>
-      <p className="mb-6 text-sm text-muted">تعرف على أبطال مطعم المروة</p>
+      <h2 className="mb-2 text-2xl text-ivory">فروع <span className="text-gold-bright">المطعم</span></h2>
+      <p className="mb-6 text-sm text-muted">تعرف على فروع مطعم المروة</p>
 
       {/* 3 member cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -61,7 +68,7 @@ export default function TeamPage() {
             </div>
             <p className="p-4 text-xs text-muted">{member.bio}</p>
             <div className="px-4 pb-4 text-xs font-semibold text-[var(--color-gold-bright)]">
-              شوف الجاليري ({member.gallery.length} صور) ←
+              جاليري الفرع ({member.gallery.length} صور) ←
             </div>
           </button>
         ))}

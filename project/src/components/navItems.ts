@@ -7,6 +7,6 @@ export const navItems: { id: PageId; label: string; icon: typeof Home }[] = [
   { id: 'menu', label: 'المنيو', icon: BookOpen },
   { id: 'photos', label: 'صور', icon: Image },
   { id: 'videos', label: 'فيديوهات', icon: Video },
-  { id: 'team', label: 'الفريق', icon: Users },
+  { id: 'team', label: 'الفروع', icon: Users },
   { id: 'contact', label: 'تواصل', icon: Phone },
 ];

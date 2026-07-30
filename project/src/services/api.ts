@@ -204,6 +204,49 @@ export const uploadFileAPI = async (file: File): Promise<string | null> => {
 
 export const uploadImageFile = uploadFileAPI;
 
+/** رفع ملف فيديو مباشرة من الجهاز — يرجع الـ URL */
+export const uploadVideoFile = async (
+  file: File,
+  onProgress?: (pct: number) => void
+): Promise<string | null> => {
+  const token = getAdminToken();
+  if (!token) return null;
+
+  return new Promise((resolve) => {
+    const xhr = new XMLHttpRequest();
+    const formData = new FormData();
+    formData.append('file', file);
+
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable && onProgress) {
+        onProgress(Math.round((e.loaded / e.total) * 100));
+      }
+    };
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          const data = JSON.parse(xhr.responseText);
+          resolve(data.url || null);
+        } catch {
+          resolve(null);
+        }
+      } else {
+        console.error('Video upload failed:', xhr.status);
+        resolve(null);
+      }
+    };
+
+    xhr.onerror = () => { console.error('Video upload network error'); resolve(null); };
+
+    xhr.open('POST', `${API_BASE_URL}/upload`);
+    xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+    xhr.setRequestHeader('ngrok-skip-browser-warning', 'true');
+    xhr.setRequestHeader('X-User-Id', getUserId());
+    xhr.send(formData);
+  });
+};
+
 // === Photos API ===
 
 export const fetchPhotos = async (category?: string): Promise<PhotoData[]> => {

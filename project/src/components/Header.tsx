@@ -16,7 +16,7 @@ const titles: Record<PageId, string> = {
   menu: 'المنيو',
   photos: 'صور المطعم',
   videos: 'فيديوهات',
-  team: 'فريق العمل',
+  team: 'الفروع',
   contact: 'تواصل معنا',
 };
 

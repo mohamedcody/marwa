@@ -44,6 +44,7 @@ export default function AdminModal({ isOpen, onClose, onRefreshData, editMenuIte
   const [photoStatus, setPhotoStatus] = useState('');
   const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null);
   const [photoCategory, setPhotoCategory] = useState('general');
+  const [isCoverImage, setIsCoverImage] = useState(false);
 
   // حالات نموذج إضافة/تعديل صنف للمنيو
   const [menuName, setMenuName] = useState('');
@@ -224,7 +225,8 @@ export default function AdminModal({ isOpen, onClose, onRefreshData, editMenuIte
       return;
     }
 
-    const result = await addPhotoAPI(photoCaption, finalSrc, photoCategory);
+    const finalCategory = isCoverImage ? `${photoCategory}_cover` : photoCategory;
+    const result = await addPhotoAPI(photoCaption, finalSrc, finalCategory);
     setLoading(false);
 
     if (result) {
@@ -234,6 +236,7 @@ export default function AdminModal({ isOpen, onClose, onRefreshData, editMenuIte
       setPhotoUrlInput('');
       setPhotoPreviewUrl(null);
       setPhotoCategory('general');
+      setIsCoverImage(false);
       if (onRefreshData) onRefreshData();
     } else {
       setPhotoStatus('⚠️ فشل حفظ الصورة (تأكد من تشغيل الباك اند)');
@@ -359,18 +362,23 @@ export default function AdminModal({ isOpen, onClose, onRefreshData, editMenuIte
   };
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-      <div className="relative w-full max-w-lg rounded-2xl border border-surface bg-[#12211d] p-6 text-ivory shadow-2xl">
+    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/80 p-4 backdrop-blur-md">
+      <div className="relative w-full max-w-lg rounded-3xl border border-[#C9A227]/25 bg-gradient-to-b from-[#1a2e24] to-[#12211d] p-6 text-ivory shadow-2xl shadow-black/60" style={{boxShadow:'0 0 40px rgba(201,162,39,0.08), 0 25px 50px rgba(0,0,0,0.6)'}}>
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-surface/50 pb-4">
-          <div className="flex items-center gap-2">
-            <KeyRound className="text-gold-bright" size={22} />
-            <h3 className="text-lg font-bold text-ivory">
-              {editMenuItem ? 'تعديل صنف في المنيو' : 'لوحة تحكم الأدمن (المروة)'}
-            </h3>
+        <div className="flex items-center justify-between border-b border-[#C9A227]/15 pb-4 mb-1">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#C9A227]/15 border border-[#C9A227]/25">
+              <KeyRound className="text-[#C9A227]" size={18} />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-[#F3E9D2] leading-none">
+                {editMenuItem ? 'تعديل صنف' : 'لوحة تحكم المروة'}
+              </h3>
+              <p className="text-[10px] text-[#A9A08C] mt-0.5">Admin Dashboard</p>
+            </div>
           </div>
-          <button onClick={onClose} className="rounded-full p-1.5 text-gray-400 hover:bg-surface hover:text-white">
-            <X size={20} />
+          <button onClick={onClose} className="flex h-8 w-8 items-center justify-center rounded-full bg-[#1C2E24] text-[#A9A08C] hover:bg-[#2C4136] hover:text-white transition-all">
+            <X size={16} />
           </button>
         </div>
 
@@ -415,75 +423,47 @@ export default function AdminModal({ isOpen, onClose, onRefreshData, editMenuIte
             <button
               type="submit"
               disabled={loading}
-              className="mt-2 w-full rounded-xl bg-gold-bright py-2.5 font-bold text-[#12211d] transition hover:brightness-110 disabled:opacity-50"
+              className="mt-2 w-full rounded-xl bg-gradient-to-r from-[#C9A227] to-[#E4C566] py-3 text-sm font-bold text-[#12211d] shadow-lg shadow-[#C9A227]/25 hover:brightness-105 active:scale-[0.98] transition-all disabled:opacity-50"
             >
-              {loading ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}
+              {loading ? 'جاري تسجيل الدخول...' : '🔐 تسجيل الدخول'}
             </button>
           </form>
         ) : (
           /* Logged In Admin Actions */
           <div className="mt-6 space-y-4 max-h-[70vh] overflow-y-auto pr-1" dir="rtl">
             {/* Top Logged Status */}
-            <div className="flex items-center justify-between rounded-xl bg-surface/40 p-3 text-xs">
-              <span className="text-emerald-400 font-semibold flex items-center gap-1">
-                <Check size={16} /> متصل كأدمن مسؤول
+            <div className="flex items-center justify-between rounded-2xl bg-emerald-900/20 border border-emerald-700/25 px-4 py-2.5 text-xs">
+              <span className="text-emerald-400 font-bold flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                متصل كمسؤول
               </span>
               <button
                 type="button"
                 onClick={handleLogout}
-                className="flex items-center gap-1 text-red-400 hover:text-red-300 font-semibold"
+                className="flex items-center gap-1.5 rounded-lg bg-red-900/30 border border-red-700/30 px-3 py-1 text-red-400 hover:bg-red-900/50 hover:text-red-300 font-bold transition-all"
               >
-                <LogOut size={14} /> خروج
+                <LogOut size={12} /> خروج
               </button>
             </div>
 
-            {/* Tabs Header - only show if not in editMenuItem mode */}
+            {/* Tabs Header */}
             {!editMenuItem && (
-              <div className="flex border-b border-surface/50 pb-2 gap-1 overflow-x-auto">
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('menu')}
-                  className={`flex-1 min-w-[75px] rounded-lg py-2 text-xs font-bold transition-all ${
-                    activeTab === 'menu'
-                      ? 'bg-gold-bright text-[#12211d]'
-                      : 'bg-surface/30 text-gray-400 hover:text-white'
-                  }`}
-                >
-                  🍔 المنيو
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('photos')}
-                  className={`flex-1 min-w-[75px] rounded-lg py-2 text-xs font-bold transition-all ${
-                    activeTab === 'photos'
-                      ? 'bg-gold-bright text-[#12211d]'
-                      : 'bg-surface/30 text-gray-400 hover:text-white'
-                  }`}
-                >
-                  🖼️ الصور
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('videos')}
-                  className={`flex-1 min-w-[75px] rounded-lg py-2 text-xs font-bold transition-all ${
-                    activeTab === 'videos'
-                      ? 'bg-gold-bright text-[#12211d]'
-                      : 'bg-surface/30 text-gray-400 hover:text-white'
-                  }`}
-                >
-                  🎥 الفيديو
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('info')}
-                  className={`flex-1 min-w-[75px] rounded-lg py-2 text-xs font-bold transition-all ${
-                    activeTab === 'info'
-                      ? 'bg-gold-bright text-[#12211d]'
-                      : 'bg-surface/30 text-gray-400 hover:text-white'
-                  }`}
-                >
-                  ℹ️ البيانات
-                </button>
+              <div className="grid grid-cols-4 gap-1.5 rounded-2xl bg-[#0d1815] border border-[#1C2E24] p-1.5">
+                {([['menu','🍔','المنيو'],['photos','🖼️','الصور'],['videos','🎥','فيديو'],['info','ℹ️','البيانات']] as const).map(([tab, icon, label]) => (
+                  <button
+                    key={tab}
+                    type="button"
+                    onClick={() => setActiveTab(tab as any)}
+                    className={`relative flex flex-col items-center gap-1 rounded-xl py-2.5 px-1 text-[10px] font-bold transition-all duration-300 ${
+                      activeTab === tab
+                        ? 'bg-gradient-to-b from-[#C9A227] to-[#B8901F] text-[#12211d] shadow-lg shadow-[#C9A227]/30'
+                        : 'text-[#A9A08C] hover:text-[#F3E9D2] hover:bg-[#1C2E24]'
+                    }`}
+                  >
+                    <span className="text-base leading-none">{icon}</span>
+                    {label}
+                  </button>
+                ))}
               </div>
             )}
 
@@ -587,15 +567,15 @@ export default function AdminModal({ isOpen, onClose, onRefreshData, editMenuIte
                     <button
                       type="submit"
                       disabled={loading}
-                      className="flex-1 rounded-lg bg-gold-bright py-2 text-xs font-bold text-[#12211d] hover:brightness-110"
+                      className="flex-1 rounded-xl bg-gradient-to-r from-[#C9A227] to-[#E4C566] py-3 text-sm font-bold text-[#12211d] shadow-lg shadow-[#C9A227]/25 hover:brightness-105 active:scale-[0.98] transition-all disabled:opacity-50"
                     >
-                      {editMenuItem ? 'حفظ التعديلات' : 'إضافة الصنف'}
+                      {loading ? 'جاري الحفظ...' : (editMenuItem ? 'حفظ التعديلات' : '🍔 إضافة الصنف')}
                     </button>
                     {editMenuItem && (
                       <button
                         type="button"
                         onClick={onClose}
-                        className="rounded-lg bg-surface px-4 py-2 text-xs font-bold text-white hover:bg-surface/80"
+                        className="rounded-xl bg-surface px-6 py-3 text-sm font-bold text-white hover:bg-surface/80 active:scale-[0.98] transition-all"
                       >
                         إلغاء
                       </button>
@@ -701,9 +681,9 @@ export default function AdminModal({ isOpen, onClose, onRefreshData, editMenuIte
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full rounded-lg bg-gold-bright py-2 text-xs font-bold text-[#12211d] hover:brightness-110"
+                    className="w-full rounded-xl bg-gradient-to-r from-[#C9A227] to-[#E4C566] py-3 text-sm font-bold text-[#12211d] shadow-lg shadow-[#C9A227]/25 hover:brightness-105 active:scale-[0.98] transition-all disabled:opacity-50"
                   >
-                    حفظ معلومات المطعم
+                    {loading ? 'جاري الحفظ...' : 'ℹ️ حفظ معلومات المطعم'}
                   </button>
                 </form>
               </div>
@@ -732,15 +712,32 @@ export default function AdminModal({ isOpen, onClose, onRefreshData, editMenuIte
                      <label className="block text-xs text-gold-bright mb-1 font-bold">مكان عرض الصورة (التصنيف)</label>
                      <select
                        value={photoCategory}
-                       onChange={(e) => setPhotoCategory(e.target.value)}
+                       onChange={(e) => {
+                         setPhotoCategory(e.target.value);
+                         if (e.target.value === 'general') setIsCoverImage(false);
+                       }}
                        className="w-full rounded-lg border border-surface bg-[#12211d] px-3 py-2 text-xs text-white focus:outline-none focus:border-gold-bright"
                      >
                        <option value="general">المعرض العام للأكلات</option>
-                       <option value="lambi">فريق العمل: معرض اللمبي</option>
-                       <option value="said">فريق العمل: معرض سعيد</option>
-                       <option value="nazer">فريق العمل: معرض ناظر</option>
+                       <option value="alaa">فرع علاء</option>
+                       <option value="said">فرع سعيد</option>
+                       <option value="ahmed">فرع مدير المطعم (أحمد)</option>
                      </select>
                    </div>
+
+                   {photoCategory !== 'general' && (
+                     <div>
+                       <label className="block text-xs text-gold-bright mb-1 font-bold">نوع الصورة</label>
+                       <select
+                         value={isCoverImage ? 'cover' : 'normal'}
+                         onChange={(e) => setIsCoverImage(e.target.value === 'cover')}
+                         className="w-full rounded-lg border border-surface bg-[#12211d] px-3 py-2 text-xs text-white focus:outline-none focus:border-gold-bright"
+                       >
+                         <option value="normal">صورة عادية (في الجاليري)</option>
+                         <option value="cover">صورة غلاف للفرع (الرئيسية)</option>
+                       </select>
+                     </div>
+                   )}
 
                   <div>
                     <label className="block text-xs text-gray-400 mb-1">اختر صورة من جهازك</label>
@@ -780,9 +777,9 @@ export default function AdminModal({ isOpen, onClose, onRefreshData, editMenuIte
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full rounded-lg bg-gold-bright/90 py-2 text-xs font-bold text-[#12211d] hover:bg-gold-bright"
+                    className="w-full rounded-xl bg-gradient-to-r from-[#C9A227] to-[#E4C566] py-3 text-sm font-bold text-[#12211d] shadow-lg shadow-[#C9A227]/25 hover:brightness-105 active:scale-[0.98] transition-all disabled:opacity-50"
                   >
-                    حفظ ونشر الصورة
+                    {loading ? 'جاري الرفع...' : '🖼️ حفظ ونشر الصورة'}
                   </button>
                 </form>
               </div>
@@ -828,22 +825,6 @@ export default function AdminModal({ isOpen, onClose, onRefreshData, editMenuIte
                     </div>
                   )}
 
-                  <div className="text-center text-[10px] text-gray-500">أو ضع رابط فيديو خارجي</div>
-
-                   <div>
-                     <label className="block text-xs text-gold-bright mb-1">رابط الفيديو</label>
-                     <input
-                       type="url"
-                       value={videoUrl}
-                       onChange={(e) => setVideoUrl(e.target.value)}
-                       placeholder="https://youtube.com/watch?v=..."
-                       className="w-full rounded-lg border border-surface bg-[#12211d] px-3 py-2 text-xs text-white focus:outline-none focus:border-gold-bright"
-                     />
-                     <p className="mt-1 text-[10px] text-gray-400">
-                       يدعم روابط فيسبوك (Reels & Watch)، يوتيوب (Shorts & Videos)، تيك توك، أو ملفات MP4 المباشرة.
-                     </p>
-                   </div>
-
                   <div>
                     <label className="block text-xs text-gray-400 mb-1">وصف قصير (اختياري)</label>
                     <input
@@ -860,9 +841,9 @@ export default function AdminModal({ isOpen, onClose, onRefreshData, editMenuIte
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full rounded-lg bg-gold-bright/90 py-2 text-xs font-bold text-[#12211d] hover:bg-gold-bright"
+                    className="w-full rounded-xl bg-gradient-to-r from-[#C9A227] to-[#E4C566] py-3 text-sm font-bold text-[#12211d] shadow-lg shadow-[#C9A227]/25 hover:brightness-105 active:scale-[0.98] transition-all disabled:opacity-50"
                   >
-                    📹 نشر الفيديو
+                    {loading ? 'جاري النشر...' : '🎥 نشر الفيديو'}
                   </button>
                 </form>
               </div>

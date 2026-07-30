@@ -57,7 +57,7 @@ export default function App() {
       menu: 'المنيو | مطعم المروة',
       photos: 'صور المطعم | مطعم المروة',
       videos: 'فيديوهات | مطعم المروة',
-      team: 'فريق العمل | مطعم المروة',
+      team: 'فروع المطعم | مطعم المروة',
       contact: 'تواصل معنا | مطعم المروة',
     };
     document.title = titles[page];
