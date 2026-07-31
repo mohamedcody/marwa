@@ -51,10 +51,20 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(List.of("*"));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        // السماح لكل الأصول بالوصول (مهم لـ Vercel و Back4app)
+        config.setAllowedOrigins(List.of(
+            "https://marwa-frontend88.vercel.app",
+            "https://marwa-project.vercel.app",
+            "http://localhost:5173",
+            "http://localhost:3000",
+            "http://localhost:4173"
+        ));
+        config.setAllowedOriginPatterns(List.of("https://*.vercel.app", "*"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"));
         config.setAllowedHeaders(List.of("*"));
-        config.setAllowCredentials(true);
+        config.setExposedHeaders(List.of("Authorization", "Content-Type"));
+        config.setAllowCredentials(false); // false عشان نسمح بـ wildcard origins
+        config.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
