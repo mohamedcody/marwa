@@ -43,6 +43,7 @@ public class VideoService {
     private final VideoLikeRepository videoLikeRepository;
     private final VideoViewRepository videoViewRepository;
     private final VideoShareRepository videoShareRepository;
+    private final CloudStorageService cloudStorageService;
 
     /**
      * جلب جميع الفيديوهات مرتبة تنازلياً كـ DTOs مع الإحصائيات الحقيقية.
@@ -75,9 +76,12 @@ public class VideoService {
      */
     @Transactional
     public void deleteVideo(Long id) {
-        if (!videoRepository.existsById(id)) {
-            throw new IllegalArgumentException("الفيديو غير موجود بالمعرف: " + id);
-        }
+        Video video = videoRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("الفيديو غير موجود بالمعرف: " + id));
+
+        // حذف الملف من Cloudinary قبل حذفه من قاعدة البيانات
+        cloudStorageService.deleteFile(video.getVideoUrl());
+
         videoRepository.deleteById(id);
     }
 

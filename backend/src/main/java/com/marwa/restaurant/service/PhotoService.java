@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 public class PhotoService {
 
     private final PhotoRepository photoRepository;
+    private final CloudStorageService cloudStorageService;
 
     /**
      * جلب جميع الصور مرتبة تنازلياً كـ DTOs.
@@ -49,9 +50,12 @@ public class PhotoService {
      */
     @Transactional
     public void deletePhoto(Long id) {
-        if (!photoRepository.existsById(id)) {
-            throw new IllegalArgumentException("الصورة غير موجودة بالمعرف: " + id);
-        }
+        Photo photo = photoRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("الصورة غير موجودة بالمعرف: " + id));
+
+        // حذف الملف من Cloudinary قبل حذفه من قاعدة البيانات
+        cloudStorageService.deleteFile(photo.getSrc());
+
         photoRepository.deleteById(id);
     }
 
