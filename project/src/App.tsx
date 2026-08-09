@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import BottomNav from './components/BottomNav';
 import Header from './components/Header';
 import AdminModal from './components/AdminModal';
@@ -12,8 +13,24 @@ import ContactPage from './pages/ContactPage';
 import { MenuItemData } from './services/api';
 
 /**
+ * أنيميشن الصفحات — fade + slide up ناعم
+ */
+const pageVariants = {
+  initial: { opacity: 0, y: 24 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -12 },
+};
+
+const pageTransition = {
+  type: 'tween' as const,
+  ease: [0.25, 0.46, 0.45, 0.94],
+  duration: 0.35,
+};
+
+/**
  * المكون الرئيسي للتطبيق (App Component).
  * يدير التنقل بين صفحات الموقع، حالة لوحة تحكم المسؤول (Admin Modal)، وتحديث العناوين والهيدر/الفوتر.
+ * تم ترقيته لدعم Page Transitions باستخدام Framer Motion.
  */
 export default function App() {
   // حالة الصفحة الحالية (الافتراضية: الصفحة الرئيسية)
@@ -66,6 +83,36 @@ export default function App() {
   // تحديد ما إذا كانت الصفحة الحالية تعتمد ملء الشاشة (مثل صفحة الفيديوهات) لإخفاء الهيدر وشريط التنقل السفلي
   const isFullscreenPage = page === 'videos';
 
+  /**
+   * عرض محتوى الصفحة النشطة داخل motion wrapper للأنيميشن
+   */
+  const renderPage = () => {
+    switch (page) {
+      case 'home':
+        return <HomePage onNavigate={navigate} />;
+      case 'menu':
+        return (
+          <MenuPage
+            onEditItem={(item) => {
+              setEditMenuItem(item);
+              setIsAdminOpen(true);
+            }}
+            onAddItem={() => openAdminWithTab('menu')}
+          />
+        );
+      case 'photos':
+        return <PhotosPage onAddPhoto={() => openAdminWithTab('photos')} />;
+      case 'videos':
+        return <VideosPage onAddVideo={() => openAdminWithTab('videos')} />;
+      case 'team':
+        return <TeamPage />;
+      case 'contact':
+        return <ContactPage />;
+      default:
+        return <HomePage onNavigate={navigate} />;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#12211d]">
       {/* عرض الهيدر العلوي في جميع الصفحات ما عدا الفيديوهات */}
@@ -77,23 +124,19 @@ export default function App() {
         />
       )}
 
-      {/* منطقة عرض محتوى الصفحة النشطة */}
-      <main key={refreshKey}>
-        {page === 'home' && <HomePage onNavigate={navigate} />}
-        {page === 'menu' && (
-          <MenuPage
-            onEditItem={(item) => {
-              setEditMenuItem(item);
-              setIsAdminOpen(true);
-            }}
-            onAddItem={() => openAdminWithTab('menu')}
-          />
-        )}
-        {page === 'photos' && <PhotosPage onAddPhoto={() => openAdminWithTab('photos')} />}
-        {page === 'videos' && <VideosPage onAddVideo={() => openAdminWithTab('videos')} />}
-        {page === 'team' && <TeamPage />}
-        {page === 'contact' && <ContactPage />}
-      </main>
+      {/* منطقة عرض محتوى الصفحة النشطة مع Page Transition Animation */}
+      <AnimatePresence mode="wait">
+        <motion.main
+          key={`${page}-${refreshKey}`}
+          variants={pageVariants}
+          initial="initial"
+          animate="animate"
+          exit="exit"
+          transition={pageTransition}
+        >
+          {renderPage()}
+        </motion.main>
+      </AnimatePresence>
 
       {/* عرض شريط التنقل السفلي للهواتف في جميع الصفحات ما عدا الفيديوهات */}
       {!isFullscreenPage && <BottomNav current={page} onNavigate={navigate} />}

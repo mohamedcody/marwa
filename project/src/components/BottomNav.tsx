@@ -1,4 +1,5 @@
 import { navItems, type PageId } from './navItems';
+import { motion } from 'framer-motion';
 
 /**
  * الخصائص (Props) الخاصة بمكون شريط التنقل السفلي
@@ -10,15 +11,15 @@ type BottomNavProps = {
 
 /**
  * مكون شريط التنقل السفلي للهواتف والشاشات (Bottom Navigation Component).
- * يعرض أيقونات التنقل الرئيسية في أسفل الشاشة مع مؤشر ملون ينشط مع الصفحة الحالية.
+ * تم ترقيته لدعم حركات (Physics-based) باستخدام Framer Motion و تأثيرات زجاجية ممتازة.
  */
 export default function BottomNav({ current, onNavigate }: BottomNavProps) {
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 border-t border-surface bg-[#12211d]/95 backdrop-blur-md"
+      className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/5 bg-[#12211d]/70 backdrop-blur-xl"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
-      <ul className="mx-auto flex max-w-2xl items-stretch justify-around">
+      <ul className="mx-auto flex max-w-2xl items-stretch justify-around px-2 py-1">
         {/* التكرار على جميع عناصر القائمة لإنشاء أزرار التنقل */}
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -27,32 +28,59 @@ export default function BottomNav({ current, onNavigate }: BottomNavProps) {
             <li key={item.id} className="flex-1">
               <button
                 onClick={() => onNavigate(item.id)}
-                className="group relative flex w-full flex-col items-center gap-0.5 py-2.5 transition-colors"
+                className="group relative flex w-full flex-col items-center gap-1 py-2 outline-none"
                 aria-label={item.label}
                 aria-current={active ? 'page' : undefined}
               >
-                {/* الخط الذهبي السفلي لتأكيد اختيار الصفحة */}
-                <span
-                  className={`absolute top-0 h-0.5 rounded-full bg-[var(--color-gold-bright)] transition-all duration-300 ${
-                    active ? 'w-8 opacity-100' : 'w-0 opacity-0'
-                  }`}
-                />
-                {/* أيقونة الصفحة */}
-                <Icon
-                  size={22}
-                  className={`transition-colors duration-300 ${
-                    active
-                      ? 'text-[var(--color-gold-bright)]'
-                      : 'text-[var(--color-muted)] group-hover:text-[var(--color-ivory)]'
-                  }`}
-                />
+                {/* خلفية نشطة بتأثير Glow (تظهر عند التفعيل) */}
+                {active && (
+                  <motion.div
+                    layoutId="activeTabBackground"
+                    className="absolute inset-0 rounded-2xl bg-[#C9A227]/10"
+                    initial={false}
+                    transition={{
+                      type: 'spring',
+                      stiffness: 500,
+                      damping: 35,
+                    }}
+                  />
+                )}
+
+                {/* الخط الذهبي العلوي لتأكيد اختيار الصفحة بحركة ناعمة */}
+                {active && (
+                  <motion.span
+                    layoutId="activeTabIndicator"
+                    className="absolute top-0 h-[3px] w-10 rounded-full bg-[#C9A227] shadow-[0_0_10px_rgba(201,162,39,0.8)]"
+                    initial={false}
+                    transition={{
+                      type: 'spring',
+                      stiffness: 500,
+                      damping: 35,
+                    }}
+                  />
+                )}
+
+                {/* أيقونة الصفحة مع تأثيرات الحركة (Scale & Bounce) */}
+                <motion.div
+                  animate={{
+                    scale: active ? 1.15 : 1,
+                    y: active ? -2 : 0,
+                  }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+                  className={`relative z-10 transition-colors duration-300 ${active
+                      ? 'text-[#C9A227] drop-shadow-[0_0_8px_rgba(201,162,39,0.5)]'
+                      : 'text-[#8A9A92] group-hover:text-[#F3E9D2]'
+                    }`}
+                >
+                  <Icon size={22} strokeWidth={active ? 2.5 : 2} />
+                </motion.div>
+
                 {/* اسم الصفحة */}
                 <span
-                  className={`text-[10px] font-semibold transition-colors duration-300 ${
-                    active
-                      ? 'text-[var(--color-gold-bright)]'
-                      : 'text-[var(--color-muted)] group-hover:text-[var(--color-ivory)]'
-                  }`}
+                  className={`relative z-10 text-[10px] font-bold transition-all duration-300 ${active
+                      ? 'text-[#C9A227]'
+                      : 'text-[#8A9A92] group-hover:text-[#F3E9D2]'
+                    }`}
                 >
                   {item.label}
                 </span>

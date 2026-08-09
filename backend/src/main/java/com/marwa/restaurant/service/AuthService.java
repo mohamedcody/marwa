@@ -49,7 +49,7 @@ public class AuthService {
                 throw new IllegalStateException("الحساب معطل، يرجى التواصل مع الإدارة");
             }
 
-            // التحقق من كلمة المرور: يدعم BCrypt والنص العادي (للتوافق المؤقت)
+       
             boolean passwordMatches = false;
             String storedPassword = user.getPassword();
 

@@ -363,7 +363,7 @@ export default function AdminModal({ isOpen, onClose, onRefreshData, editMenuIte
 
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/80 p-4 backdrop-blur-md">
-      <div className="relative w-full max-w-lg rounded-3xl border border-[#C9A227]/25 bg-gradient-to-b from-[#1a2e24] to-[#12211d] p-6 text-ivory shadow-2xl shadow-black/60" style={{boxShadow:'0 0 40px rgba(201,162,39,0.08), 0 25px 50px rgba(0,0,0,0.6)'}}>
+      <div className="relative w-full max-w-lg rounded-3xl border border-[#C9A227]/25 bg-gradient-to-b from-[#1a2e24] to-[#12211d] p-6 text-ivory shadow-2xl shadow-black/60" style={{ boxShadow: '0 0 40px rgba(201,162,39,0.08), 0 25px 50px rgba(0,0,0,0.6)' }}>
         {/* Header */}
         <div className="flex items-center justify-between border-b border-[#C9A227]/15 pb-4 mb-1">
           <div className="flex items-center gap-3">
@@ -449,16 +449,15 @@ export default function AdminModal({ isOpen, onClose, onRefreshData, editMenuIte
             {/* Tabs Header */}
             {!editMenuItem && (
               <div className="grid grid-cols-4 gap-1.5 rounded-2xl bg-[#0d1815] border border-[#1C2E24] p-1.5">
-                {([['menu','🍔','المنيو'],['photos','🖼️','الصور'],['videos','🎥','فيديو'],['info','ℹ️','البيانات']] as const).map(([tab, icon, label]) => (
+                {([['menu', '🍔', 'المنيو'], ['photos', '🖼️', 'الصور'], ['videos', '🎥', 'فيديو'], ['info', 'ℹ️', 'البيانات']] as const).map(([tab, icon, label]) => (
                   <button
                     key={tab}
                     type="button"
                     onClick={() => setActiveTab(tab as any)}
-                    className={`relative flex flex-col items-center gap-1 rounded-xl py-2.5 px-1 text-[10px] font-bold transition-all duration-300 ${
-                      activeTab === tab
+                    className={`relative flex flex-col items-center gap-1 rounded-xl py-2.5 px-1 text-[10px] font-bold transition-all duration-300 ${activeTab === tab
                         ? 'bg-gradient-to-b from-[#C9A227] to-[#B8901F] text-[#12211d] shadow-lg shadow-[#C9A227]/30'
                         : 'text-[#A9A08C] hover:text-[#F3E9D2] hover:bg-[#1C2E24]'
-                    }`}
+                      }`}
                   >
                     <span className="text-base leading-none">{icon}</span>
                     {label}
@@ -697,47 +696,47 @@ export default function AdminModal({ isOpen, onClose, onRefreshData, editMenuIte
                 </h4>
 
                 <form onSubmit={handlePhotoUpload} className="space-y-3">
-                   <div>
-                     <label className="block text-xs text-gray-400 mb-1">اسم/وصف الصورة</label>
-                     <input
-                       type="text"
-                       value={photoCaption}
-                       onChange={(e) => setPhotoCaption(e.target.value)}
-                       placeholder="مثال: صالة الطعام الرئيسية"
-                       className="w-full rounded-lg border border-surface bg-[#12211d] px-3 py-2 text-xs text-white focus:outline-none"
-                     />
-                   </div>
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">اسم/وصف الصورة</label>
+                    <input
+                      type="text"
+                      value={photoCaption}
+                      onChange={(e) => setPhotoCaption(e.target.value)}
+                      placeholder="مثال: صالة الطعام الرئيسية"
+                      className="w-full rounded-lg border border-surface bg-[#12211d] px-3 py-2 text-xs text-white focus:outline-none"
+                    />
+                  </div>
 
-                   <div>
-                     <label className="block text-xs text-gold-bright mb-1 font-bold">مكان عرض الصورة (التصنيف)</label>
-                     <select
-                       value={photoCategory}
-                       onChange={(e) => {
-                         setPhotoCategory(e.target.value);
-                         if (e.target.value === 'general') setIsCoverImage(false);
-                       }}
-                       className="w-full rounded-lg border border-surface bg-[#12211d] px-3 py-2 text-xs text-white focus:outline-none focus:border-gold-bright"
-                     >
-                       <option value="general">المعرض العام للأكلات</option>
-                       <option value="alaa">فرع علاء</option>
-                       <option value="said">فرع سعيد</option>
-                       <option value="ahmed">فرع مدير المطعم (أحمد)</option>
-                     </select>
-                   </div>
+                  <div>
+                    <label className="block text-xs text-gold-bright mb-1 font-bold">مكان عرض الصورة (التصنيف)</label>
+                    <select
+                      value={photoCategory}
+                      onChange={(e) => {
+                        setPhotoCategory(e.target.value);
+                        if (e.target.value === 'general') setIsCoverImage(false);
+                      }}
+                      className="w-full rounded-lg border border-surface bg-[#12211d] px-3 py-2 text-xs text-white focus:outline-none focus:border-gold-bright"
+                    >
+                      <option value="general">المعرض العام للأكلات</option>
+                      <option value="alaa">فرع علاء</option>
+                      <option value="said">فرع سعيد</option>
+                      <option value="ahmed">احمد فرع</option>
+                    </select>
+                  </div>
 
-                   {photoCategory !== 'general' && (
-                     <div>
-                       <label className="block text-xs text-gold-bright mb-1 font-bold">نوع الصورة</label>
-                       <select
-                         value={isCoverImage ? 'cover' : 'normal'}
-                         onChange={(e) => setIsCoverImage(e.target.value === 'cover')}
-                         className="w-full rounded-lg border border-surface bg-[#12211d] px-3 py-2 text-xs text-white focus:outline-none focus:border-gold-bright"
-                       >
-                         <option value="normal">صورة عادية (في الجاليري)</option>
-                         <option value="cover">صورة غلاف للفرع (الرئيسية)</option>
-                       </select>
-                     </div>
-                   )}
+                  {photoCategory !== 'general' && (
+                    <div>
+                      <label className="block text-xs text-gold-bright mb-1 font-bold">نوع الصورة</label>
+                      <select
+                        value={isCoverImage ? 'cover' : 'normal'}
+                        onChange={(e) => setIsCoverImage(e.target.value === 'cover')}
+                        className="w-full rounded-lg border border-surface bg-[#12211d] px-3 py-2 text-xs text-white focus:outline-none focus:border-gold-bright"
+                      >
+                        <option value="normal">صورة عادية (في الجاليري)</option>
+                        <option value="cover">صورة غلاف للفرع (الرئيسية)</option>
+                      </select>
+                    </div>
+                  )}
 
                   <div>
                     <label className="block text-xs text-gray-400 mb-1">اختر صورة من جهازك</label>
