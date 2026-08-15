@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { ShieldCheck } from 'lucide-react';
 import { type PageId } from './navItems';
 
 /**
@@ -9,7 +8,6 @@ import { type PageId } from './navItems';
 type HeaderProps = {
   current: PageId; // الصفحة النشطة حالياً
   onNavigate: (page: PageId) => void; // دالة التنقل بين الصفحات
-  onOpenAdmin?: () => void; // دالة فتح نافذة لوحة تحكم المسؤول
 };
 
 // عناوين الصفحات المعروضة في شريط الهيدر
@@ -24,12 +22,11 @@ const titles: Record<PageId, string> = {
 
 /**
  * مكون الهيدر العلوي (Header Component).
- * تم ترقيته ليدعم:
  * - تأثير Glassmorphism متقدم (شفافية + blur)
  * - ظل متدرج عند التمرير (scroll-based shadow)
  * - أنيميشن ناعمة عند تغيير عنوان الصفحة
  */
-export default function Header({ current, onNavigate, onOpenAdmin }: HeaderProps) {
+export default function Header({ current, onNavigate }: HeaderProps) {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -70,19 +67,9 @@ export default function Header({ current, onNavigate, onOpenAdmin }: HeaderProps
           </motion.span>
         </button>
 
-        {/* زر فتح لوحة التحكم والوصف */}
+        {/* وصف المطعم */}
         <div className="flex items-center gap-3">
           <span className="hidden text-xs text-[#A9A08C] sm:inline">طعم أصيل من قلب القاهرة</span>
-          {onOpenAdmin && (
-            <button
-              onClick={onOpenAdmin}
-              className="flex items-center gap-1.5 rounded-xl border border-[#2c4136] bg-[#0a1412]/80 px-3 py-1.5 text-xs text-[#E4C566] transition-all duration-300 hover:border-[#C9A227]/50 hover:bg-[#C9A227]/10 hover:shadow-[0_0_12px_rgba(201,162,39,0.15)] active:scale-95"
-              title="لوحة تحكم الأدمن"
-            >
-              <ShieldCheck size={16} />
-              <span>الأدمن</span>
-            </button>
-          )}
         </div>
       </div>
     </header>

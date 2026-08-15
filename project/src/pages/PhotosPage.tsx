@@ -1,14 +1,9 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ChevronLeft, ChevronRight, X, Trash2, Plus } from 'lucide-react';
-import { photos as initialPhotos } from '../data/photos';
-import { fetchPhotos, deletePhotoAPI, isAdminLoggedIn, PhotoData } from '../services/api';
+import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { photos as staticPhotos, PhotoItem } from '../data/photos';
 
 // Constant threshold for swipe gestures (in pixels)
 const SWIPE_THRESHOLD = 80;
-
-interface PhotosPageProps {
-  onAddPhoto?: () => void;
-}
 
 /**
  * Sub-component for individual Photo Cards to isolate rendering and optimize performance.
@@ -17,18 +12,13 @@ interface PhotosPageProps {
 const PhotoCard = React.memo(({
   photo,
   index,
-  isAdmin,
   onSelect,
-  onDelete
 }: {
-  photo: PhotoData;
+  photo: PhotoItem;
   index: number;
-  isAdmin: boolean;
   onSelect: (index: number) => void;
-  onDelete: (e: React.MouseEvent, id: string | number) => void;
 }) => {
   const handleClick = () => onSelect(index);
-  const handleDeleteClick = (e: React.MouseEvent) => onDelete(e, photo.id);
 
   return (
     <div
@@ -46,16 +36,6 @@ const PhotoCard = React.memo(({
       <p className="absolute bottom-2 right-2 left-2 text-right text-xs text-ivory opacity-0 transition-opacity group-hover:opacity-100 truncate">
         {photo.caption}
       </p>
-
-      {isAdmin && (
-        <button
-          onClick={handleDeleteClick}
-          className="absolute top-2 left-2 flex h-8 w-8 items-center justify-center rounded-full bg-red-600/90 text-white shadow-lg transition hover:bg-red-700 z-10 active:scale-95"
-          title="حذف الصورة"
-        >
-          <Trash2 size={16} />
-        </button>
-      )}
     </div>
   );
 });
@@ -63,58 +43,12 @@ const PhotoCard = React.memo(({
 PhotoCard.displayName = 'PhotoCard';
 
 /**
- * PhotosPage Component.
- * Displays the restaurant photo gallery, fullscreen viewer, and admin options.
+ * PhotosPage Component — النسخة الثابتة (Static).
+ * بتعرض صور المطعم من ملف data/photos.ts مباشرة — بدون API أو Admin.
  */
-export default function PhotosPage({ onAddPhoto }: PhotosPageProps = {}) {
-  const [photoList, setPhotoList] = useState<PhotoData[]>(initialPhotos);
+export default function PhotosPage() {
+  const [photoList] = useState<PhotoItem[]>(staticPhotos);
   const [fullscreenIdx, setFullscreenIdx] = useState<number | null>(null);
-  const [isAdmin, setIsAdmin] = useState(isAdminLoggedIn());
-  const isDeletingRef = useRef(false);
-
-  // Synchronize admin privileges dynamically via custom auth_change event
-  useEffect(() => {
-    const checkAuth = () => setIsAdmin(isAdminLoggedIn());
-    window.addEventListener('auth_change', checkAuth);
-    return () => window.removeEventListener('auth_change', checkAuth);
-  }, []);
-
-  // Fetch photos from API with fallback to static assets
-  const loadPhotos = useCallback(async () => {
-    try {
-      const apiPhotos = await fetchPhotos();
-      if (apiPhotos && apiPhotos.length > 0) {
-        setPhotoList(apiPhotos);
-      }
-    } catch (error) {
-      console.error('Failed to load photos from backend:', error);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadPhotos();
-  }, [loadPhotos]);
-
-  // Handle Photo Deletion with safety locks (mutex) to prevent multiple parallel deletes
-  const handleDeletePhoto = useCallback(async (e: React.MouseEvent, id: string | number) => {
-    e.stopPropagation();
-    if (isDeletingRef.current) return;
-    if (!confirm('هل أنت متأكد من رغبتك في حذف هذه الصورة؟')) return;
-
-    try {
-      isDeletingRef.current = true;
-      const ok = await deletePhotoAPI(id);
-      if (ok) {
-        setPhotoList((prev) => prev.filter((p) => p.id !== id));
-      } else {
-        alert('فشل حذف الصورة، حاول مرة أخرى');
-      }
-    } catch (error) {
-      console.error('Error during image deletion:', error);
-    } finally {
-      isDeletingRef.current = false;
-    }
-  }, []);
 
   const openFullscreen = useCallback((idx: number) => {
     setFullscreenIdx(idx);
@@ -163,33 +97,16 @@ export default function PhotosPage({ onAddPhoto }: PhotosPageProps = {}) {
       <div className="pt-20" />
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-2xl text-ivory">صور <span className="text-gold-bright">المطعم</span></h2>
-        {isAdmin && (
-          <span className="text-xs text-gold-bright bg-surface px-2.5 py-1 rounded-full border border-gold-bright/30">
-            أدمن: يمكنك الحذف/الإضافة
-          </span>
-        )}
       </div>
 
-      {isAdmin && onAddPhoto && (
-        <button
-          onClick={onAddPhoto}
-          className="mb-4 w-full flex items-center justify-center gap-2 rounded-2xl bg-gold-bright py-3 text-sm font-bold text-[#12211d] shadow-lg transition hover:brightness-110 active:scale-98"
-        >
-          <Plus size={18} />
-          <span>إضافة صورة جديدة للمعرض</span>
-        </button>
-      )}
-
-      {/* Optimized Photo Grid */}
+      {/* Photo Grid */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {photoList.map((photo, idx) => (
           <PhotoCard
             key={photo.id || `static-${idx}`}
             photo={photo}
             index={idx}
-            isAdmin={isAdmin}
             onSelect={openFullscreen}
-            onDelete={handleDeletePhoto}
           />
         ))}
       </div>
@@ -210,7 +127,7 @@ export default function PhotosPage({ onAddPhoto }: PhotosPageProps = {}) {
 }
 
 type FullscreenViewerProps = {
-  photos: PhotoData[];
+  photos: PhotoItem[];
   index: number;
   onIndexChange: (idx: number) => void;
   onClose: () => void;

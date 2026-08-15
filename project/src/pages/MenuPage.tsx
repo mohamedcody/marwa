@@ -1,48 +1,17 @@
-import { useEffect, useRef, useState } from 'react';
-import { Trash2, Edit2, Plus, Loader2, UtensilsCrossed } from 'lucide-react';
-import { menuCategories as defaultCategories } from '../data/menu';
-import { fetchMenuItems, deleteMenuItemAPI, isAdminLoggedIn, MenuItemData } from '../services/api';
+import { useState } from 'react';
+import { UtensilsCrossed } from 'lucide-react';
+import { menuCategories } from '../data/menu';
 
-interface MenuPageProps {
-  onEditItem?: (item: MenuItemData) => void;
-  onAddItem?: () => void;
-}
-
-export default function MenuPage({ onEditItem, onAddItem }: MenuPageProps) {
+/**
+ * صفحة المنيو الثابتة (Static MenuPage).
+ * بتعرض أصناف المنيو من ملف data/menu.ts مباشرة — بدون API أو Admin.
+ */
+export default function MenuPage() {
   const [activeCat, setActiveCat] = useState('orders');
-  const [categories, setCategories] = useState(defaultCategories);
-  const [isAdmin, setIsAdmin] = useState(isAdminLoggedIn());
-  const [isLoading, setIsLoading] = useState(true);
-  const [deletingId, setDeletingId] = useState<string | number | null>(null);
   const [slideDir, setSlideDir] = useState<'left' | 'right'>('right');
   const [listKey, setListKey] = useState(0);
 
-  useEffect(() => {
-    const checkAuth = () => setIsAdmin(isAdminLoggedIn());
-    window.addEventListener('auth_change', checkAuth);
-    return () => window.removeEventListener('auth_change', checkAuth);
-  }, []);
-
-  const loadMenu = async () => {
-    setIsLoading(true);
-    try {
-      const apiItems = await fetchMenuItems();
-      if (apiItems && apiItems.length > 0) {
-        const orders = apiItems.filter((i) => i.categoryId === 'orders');
-        const sandwiches = apiItems.filter((i) => i.categoryId === 'sandwiches');
-        setCategories([
-          { id: 'orders', label: 'طلبات', items: orders.length > 0 ? (orders as any) : defaultCategories[0].items },
-          { id: 'sandwiches', label: 'سندوتشات', items: sandwiches.length > 0 ? (sandwiches as any) : defaultCategories[1].items },
-        ]);
-      }
-    } catch (err) {
-      console.error('Failed to load menu:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => { loadMenu(); }, []);
+  const categories = menuCategories;
 
   const handleCategoryChange = (catId: string) => {
     const currentIndex = categories.findIndex((c) => c.id === activeCat);
@@ -50,14 +19,6 @@ export default function MenuPage({ onEditItem, onAddItem }: MenuPageProps) {
     setSlideDir(nextIndex > currentIndex ? 'left' : 'right');
     setListKey(k => k + 1);
     setActiveCat(catId);
-  };
-
-  const handleDeleteItem = async (id: string | number) => {
-    if (!confirm('هل أنت متأكد من حذف هذا الصنف؟')) return;
-    setDeletingId(id);
-    const ok = await deleteMenuItemAPI(id);
-    if (ok) await loadMenu();
-    setDeletingId(null);
   };
 
   const current = categories.find((c) => c.id === activeCat) ?? categories[0];
@@ -102,32 +63,8 @@ export default function MenuPage({ onEditItem, onAddItem }: MenuPageProps) {
       {/* ══════════ BODY ══════════ */}
       <div className="menu-body">
 
-        {/* Admin Button */}
-        {isAdmin && onAddItem && (
-          <button onClick={onAddItem} className="menu-add-btn" style={{ animation: 'menuFadeUp 0.4s ease both' }}>
-            <Plus size={17} />
-            إضافة صنف جديد
-          </button>
-        )}
-
-        {/* Loading Skeleton */}
-        {isLoading && (
-          <ul className="menu-list">
-            {[...Array(5)].map((_, i) => (
-              <li key={i} className="menu-skeleton" style={{ animationDelay: `${i * 0.07}s` }}>
-                <div className="menu-skeleton-img" />
-                <div className="menu-skeleton-info">
-                  <div className="menu-skeleton-line menu-skeleton-line--title" />
-                  <div className="menu-skeleton-line menu-skeleton-line--desc" />
-                </div>
-                <div className="menu-skeleton-price" />
-              </li>
-            ))}
-          </ul>
-        )}
-
         {/* Empty State */}
-        {!isLoading && current.items.length === 0 && (
+        {current.items.length === 0 && (
           <div className="menu-empty" style={{ animation: 'menuFadeUp 0.5s ease both' }}>
             <div className="menu-empty-icon">
               <UtensilsCrossed size={32} />
@@ -138,7 +75,7 @@ export default function MenuPage({ onEditItem, onAddItem }: MenuPageProps) {
         )}
 
         {/* Items */}
-        {!isLoading && current.items.length > 0 && (
+        {current.items.length > 0 && (
           <ul
             key={listKey}
             className="menu-list"
@@ -147,7 +84,7 @@ export default function MenuPage({ onEditItem, onAddItem }: MenuPageProps) {
             {current.items.map((item, idx) => (
               <li
                 key={item.id}
-                className={`menu-card ${deletingId === item.id ? 'menu-card--deleting' : ''}`}
+                className="menu-card"
                 style={{ animation: `menuCardPop 0.45s cubic-bezier(0.34,1.56,0.64,1) ${idx * 0.055}s both` }}
               >
                 {/* Image / Placeholder */}
@@ -170,35 +107,12 @@ export default function MenuPage({ onEditItem, onAddItem }: MenuPageProps) {
                   )}
                 </div>
 
-                {/* Price + Actions */}
+                {/* Price */}
                 <div className="menu-card-right">
                   <span className="menu-card-price">
                     {item.price}
                     <small>ج.م</small>
                   </span>
-                  {isAdmin && (
-                    <div className="menu-card-actions">
-                      {onEditItem && (
-                        <button
-                          onClick={() => onEditItem(item as any)}
-                          className="menu-card-btn menu-card-btn--edit"
-                          title="تعديل"
-                        >
-                          <Edit2 size={13} />
-                        </button>
-                      )}
-                      <button
-                        onClick={() => handleDeleteItem(item.id)}
-                        disabled={deletingId === item.id}
-                        className="menu-card-btn menu-card-btn--delete"
-                        title="حذف"
-                      >
-                        {deletingId === item.id
-                          ? <Loader2 size={13} className="menu-spin" />
-                          : <Trash2 size={13} />}
-                      </button>
-                    </div>
-                  )}
                 </div>
               </li>
             ))}
@@ -355,33 +269,6 @@ export default function MenuPage({ onEditItem, onAddItem }: MenuPageProps) {
           padding: 16px 14px 0;
         }
 
-        /* ─── Add Button ─── */
-        .menu-add-btn {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          width: 100%;
-          margin-bottom: 16px;
-          padding: 13px;
-          border-radius: 18px;
-          background: linear-gradient(135deg, #C9A227, #E4C566);
-          color: #12211D;
-          font-size: 0.875rem;
-          font-weight: 700;
-          font-family: var(--font-body);
-          border: none;
-          cursor: pointer;
-          box-shadow: 0 4px 20px rgba(201,162,39,0.3);
-          transition: all 0.3s ease;
-        }
-        .menu-add-btn:hover {
-          filter: brightness(1.08);
-          box-shadow: 0 6px 24px rgba(201,162,39,0.45);
-          transform: translateY(-1px);
-        }
-        .menu-add-btn:active { transform: scale(0.98); }
-
         /* ─── List ─── */
         .menu-list {
           display: flex;
@@ -389,38 +276,6 @@ export default function MenuPage({ onEditItem, onAddItem }: MenuPageProps) {
           gap: 10px;
           list-style: none;
           padding: 0; margin: 0;
-        }
-
-        /* ─── Skeleton ─── */
-        .menu-skeleton {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          padding: 14px;
-          border-radius: 20px;
-          background: rgba(28,46,36,0.5);
-          border: 1px solid rgba(44,65,54,0.5);
-          animation: menuPulse 1.5s ease infinite;
-        }
-        .menu-skeleton-img {
-          width: 62px; height: 62px;
-          border-radius: 14px;
-          background: rgba(44,65,54,0.8);
-          flex-shrink: 0;
-        }
-        .menu-skeleton-info { flex: 1; display: flex; flex-direction: column; gap: 8px; }
-        .menu-skeleton-line {
-          border-radius: 8px;
-          background: rgba(44,65,54,0.8);
-          height: 12px;
-        }
-        .menu-skeleton-line--title { width: 55%; }
-        .menu-skeleton-line--desc  { width: 80%; opacity: 0.6; }
-        .menu-skeleton-price {
-          width: 52px; height: 20px;
-          border-radius: 8px;
-          background: rgba(44,65,54,0.8);
-          flex-shrink: 0;
         }
 
         /* ─── Card ─── */
@@ -441,11 +296,6 @@ export default function MenuPage({ onEditItem, onAddItem }: MenuPageProps) {
           border-color: rgba(201,162,39,0.3);
           transform: translateY(-2px);
           box-shadow: 0 8px 24px rgba(0,0,0,0.35);
-        }
-        .menu-card--deleting {
-          opacity: 0.35;
-          transform: scale(0.96);
-          pointer-events: none;
         }
 
         /* Image */
@@ -505,7 +355,7 @@ export default function MenuPage({ onEditItem, onAddItem }: MenuPageProps) {
           overflow: hidden;
         }
 
-        /* Price + Actions */
+        /* Price */
         .menu-card-right {
           display: flex;
           flex-direction: column;
@@ -526,33 +376,6 @@ export default function MenuPage({ onEditItem, onAddItem }: MenuPageProps) {
           color: #A9A08C;
           font-weight: 400;
         }
-        .menu-card-actions { display: flex; gap: 6px; }
-        .menu-card-btn {
-          display: flex; align-items: center; justify-content: center;
-          width: 30px; height: 30px;
-          border-radius: 50%;
-          border: none;
-          cursor: pointer;
-          transition: all 0.2s ease;
-        }
-        .menu-card-btn:active { transform: scale(0.88); }
-        .menu-card-btn--edit {
-          background: rgba(201,162,39,0.15);
-          color: #C9A227;
-        }
-        .menu-card-btn--edit:hover {
-          background: rgba(201,162,39,0.3);
-          transform: rotate(10deg) scale(1.05);
-        }
-        .menu-card-btn--delete {
-          background: rgba(220,50,50,0.15);
-          color: #f87171;
-        }
-        .menu-card-btn--delete:hover {
-          background: rgba(220,50,50,0.7);
-          color: #fff;
-        }
-        .menu-card-btn:disabled { opacity: 0.4; pointer-events: none; }
 
         /* ─── Empty ─── */
         .menu-empty {
@@ -580,9 +403,6 @@ export default function MenuPage({ onEditItem, onAddItem }: MenuPageProps) {
           color: rgba(169,160,140,0.5);
           padding-bottom: 8px;
         }
-
-        /* ─── Spinner ─── */
-        .menu-spin { animation: menuSpin 0.7s linear infinite; }
 
         /* ─── Keyframes ─── */
         @keyframes menuFadeDown {
@@ -612,14 +432,6 @@ export default function MenuPage({ onEditItem, onAddItem }: MenuPageProps) {
         @keyframes menuShimmer {
           from { transform: translateX(-120%); }
           to   { transform: translateX(220%); }
-        }
-        @keyframes menuPulse {
-          0%, 100% { opacity: 1; }
-          50%       { opacity: 0.55; }
-        }
-        @keyframes menuSpin {
-          from { transform: rotate(0deg); }
-          to   { transform: rotate(360deg); }
         }
       `}</style>
     </div>
