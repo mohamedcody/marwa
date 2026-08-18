@@ -1,43 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { teamMembers, type TeamMember } from '../data/team';
-import { fetchPhotos } from '../services/api';
 
 export default function TeamPage() {
   const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
-  const [members, setMembers] = useState<TeamMember[]>(teamMembers);
-
-  useEffect(() => {
-    const loadDynamicTeamPhotos = async () => {
-      const apiPhotos = await fetchPhotos();
-      if (apiPhotos && apiPhotos.length > 0) {
-        setMembers(prevMembers => 
-          prevMembers.map(member => {
-            // تصفية الصور التي تنتمي لهذا العضو من الباك إند
-            const memberPhotos = apiPhotos
-              .filter(p => p.category === member.id)
-              .map(p => p.src);
-            
-            // استخراج صورة الغلاف إذا كانت موجودة
-            const coverPhoto = apiPhotos
-              .filter(p => p.category === `${member.id}_cover`)
-              .map(p => p.src)
-              .pop(); // نأخذ آخر صورة غلاف تم رفعها
-            
-            // دمج الصور الجديدة مع الصور الافتراضية الثابتة دون تكرار
-            const updatedGallery = Array.from(new Set([...memberPhotos, ...member.gallery]));
-            
-            return {
-              ...member,
-              gallery: updatedGallery,
-              avatar: coverPhoto || member.avatar, // استبدال الصورة الشخصية بصورة الغلاف إن وجدت
-            };
-          })
-        );
-      }
-    };
-    loadDynamicTeamPhotos();
-  }, []);
+  const members = teamMembers;
 
   return (
     <div className="px-4 pb-4">
