@@ -1,7 +1,10 @@
-// هذا الملف لم يعد مستخدماً — الموقع أصبح ثابت (Static) بالكامل.
-// يمكنك حذفه بأمان.
+/**
+ * api.ts — طبقة الخدمات الموحدة للواجهة الأمامية
+ * تم تحويلها لخدمات Frontend-Only آمنة ومستقرة بدون أي تبعيات خادم مكسورة.
+ */
 
-// ── Interfaces (تم الاحتفاظ بها لتوافق الاستيراد) ──
+export * from './restaurantService';
+
 export interface MenuItemData {
   id: string | number;
   name: string;

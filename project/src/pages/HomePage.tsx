@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { Clock, Leaf, MapPin, Star, UtensilsCrossed } from 'lucide-react';
 import type { PageId } from '../components/navItems';
+import DeveloperBadge from '../components/DeveloperBadge';
 
 /**
  * الخصائص (Props) الخاصة بالصفحة الرئيسية
@@ -242,7 +243,11 @@ export default function HomePage({ onNavigate }: HomePageProps) {
       <footer className="mt-8 border-t border-[#2c4136] px-6 py-8 text-center">
         <p className="font-display text-2xl text-[#E4C566]">مطعم المروة</p>
         <p className="mt-2 text-sm text-[#A9A08C]">طعم أصيل من قلب القاهرة</p>
-        <p className="mt-4 text-xs text-[#A9A08C]">© {new Date().getFullYear()} جميع الحقوق محفوظة</p>
+        
+        {/* بطاقة المطور المركزية */}
+        <DeveloperBadge />
+
+        <p className="mt-6 text-xs text-[#A9A08C]">© {new Date().getFullYear()} جميع الحقوق محفوظة</p>
       </footer>
     </div>
   );

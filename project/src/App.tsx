@@ -19,10 +19,9 @@ const pageVariants = {
   exit: { opacity: 0, y: -12 },
 };
 
-const pageTransition = {
-  type: 'tween' as const,
-  ease: [0.25, 0.46, 0.45, 0.94],
+const pageTransition: { duration: number; ease: [number, number, number, number] } = {
   duration: 0.35,
+  ease: [0.25, 0.46, 0.45, 0.94],
 };
 
 /**
