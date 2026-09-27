@@ -6,69 +6,102 @@ import { photos as staticPhotos, PhotoItem } from '../data/photos';
 const SWIPE_THRESHOLD = 80;
 
 /**
- * Sub-component for individual Photo Cards to isolate rendering and optimize performance.
- * Wrapped in React.memo to prevent unnecessary re-renders of the grid items.
- */
-const PhotoCard = React.memo(({
-  photo,
-  index,
-  onSelect,
-}: {
-  photo: PhotoItem;
-  index: number;
-  onSelect: (index: number) => void;
-}) => {
-  const handleClick = () => onSelect(index);
-
-  return (
-    <div
-      onClick={handleClick}
-      className="group relative aspect-square cursor-pointer overflow-hidden rounded-2xl border border-surface"
-    >
-      <img
-        src={photo.src}
-        alt={photo.caption || 'صورة من مطعم المروة'}
-        loading="lazy"
-        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-      />
-      <div className="absolute inset-0 bg-gradient-to-t from-[#12211d]/80 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
-      
-      <p className="absolute bottom-2 right-2 left-2 text-right text-xs text-ivory opacity-0 transition-opacity group-hover:opacity-100 truncate">
-        {photo.caption}
-      </p>
-    </div>
-  );
-});
-
-PhotoCard.displayName = 'PhotoCard';
-
-/**
- * PhotosPage Component — النسخة الثابتة (Static).
- * بتعرض صور المطعم من ملف data/photos.ts مباشرة — بدون API أو Admin.
+ * Auto-scrolling horizontal photo carousel with drag/swipe support.
+ * The photos scroll slowly and infinitely; the user can also drag left/right.
  */
 export default function PhotosPage() {
   const [photoList] = useState<PhotoItem[]>(staticPhotos);
   const [fullscreenIdx, setFullscreenIdx] = useState<number | null>(null);
 
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const animRef = useRef<number>(0);
+  const scrollSpeed = useRef(0.5); // pixels per frame — nice and slow
+  const isUserDragging = useRef(false);
+  const isPaused = useRef(false);
+  const dragStartX = useRef(0);
+  const dragScrollLeft = useRef(0);
+
+  // ───── Auto-scroll loop ─────
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    // نكرر الصور 3 مرات عشان نعمل تأثير لا نهائي
+    const tick = () => {
+      if (!isUserDragging.current && !isPaused.current && el) {
+        el.scrollLeft += scrollSpeed.current;
+
+        // لما نوصل لنهاية الكلون الأوسط → نرجع ببلاش لبداية الكلون الأوسط
+        const singleSetWidth = el.scrollWidth / 3;
+        if (el.scrollLeft >= singleSetWidth * 2) {
+          el.scrollLeft -= singleSetWidth;
+        }
+        if (el.scrollLeft <= 0) {
+          el.scrollLeft += singleSetWidth;
+        }
+      }
+      animRef.current = requestAnimationFrame(tick);
+    };
+
+    // Initialize scroll position at the middle clone
+    el.scrollLeft = el.scrollWidth / 3;
+    animRef.current = requestAnimationFrame(tick);
+
+    return () => cancelAnimationFrame(animRef.current);
+  }, [photoList]);
+
+  // ───── Drag / Swipe handlers ─────
+  const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    const el = scrollRef.current;
+    if (!el) return;
+    isUserDragging.current = true;
+    dragStartX.current = e.clientX;
+    dragScrollLeft.current = el.scrollLeft;
+    el.style.cursor = 'grabbing';
+    el.setPointerCapture(e.pointerId);
+  }, []);
+
+  const handlePointerMove = useCallback((e: React.PointerEvent) => {
+    if (!isUserDragging.current) return;
+    const el = scrollRef.current;
+    if (!el) return;
+    const dx = e.clientX - dragStartX.current;
+    el.scrollLeft = dragScrollLeft.current - dx;
+  }, []);
+
+  const handlePointerUp = useCallback((e: React.PointerEvent) => {
+    isUserDragging.current = false;
+    const el = scrollRef.current;
+    if (el) {
+      el.style.cursor = 'grab';
+      el.releasePointerCapture(e.pointerId);
+    }
+  }, []);
+
+  // ───── Pause on hover (desktop) ─────
+  const handleMouseEnter = useCallback(() => {
+    isPaused.current = true;
+  }, []);
+  const handleMouseLeave = useCallback(() => {
+    isPaused.current = false;
+  }, []);
+
+  // ───── Open photo in fullscreen ─────
   const openFullscreen = useCallback((idx: number) => {
     setFullscreenIdx(idx);
   }, []);
-
   const closeFullscreen = useCallback(() => {
     setFullscreenIdx(null);
   }, []);
 
   const next = useCallback(() => {
-    setFullscreenIdx((prevIdx) => (prevIdx === null ? null : (prevIdx + 1) % photoList.length));
+    setFullscreenIdx((p) => (p === null ? null : (p + 1) % photoList.length));
   }, [photoList]);
-
   const prev = useCallback(() => {
-    setFullscreenIdx((prevIdx) =>
-      prevIdx === null ? null : (prevIdx - 1 + photoList.length) % photoList.length
-    );
+    setFullscreenIdx((p) => (p === null ? null : (p - 1 + photoList.length) % photoList.length));
   }, [photoList]);
 
-  // Keyboard navigation control
+  // Keyboard nav in fullscreen
   useEffect(() => {
     if (fullscreenIdx === null) return;
     const handler = (e: KeyboardEvent) => {
@@ -80,38 +113,99 @@ export default function PhotosPage() {
     return () => window.removeEventListener('keydown', handler);
   }, [fullscreenIdx, closeFullscreen, next, prev]);
 
-  // Lock scroll in background when fullscreen viewer is open
+  // Lock body scroll when fullscreen
   useEffect(() => {
     if (fullscreenIdx !== null) {
       document.body.classList.add('overflow-hidden');
     } else {
       document.body.classList.remove('overflow-hidden');
     }
-    return () => {
-      document.body.classList.remove('overflow-hidden');
-    };
+    return () => document.body.classList.remove('overflow-hidden');
   }, [fullscreenIdx]);
 
+  // نكرر الصور 3 مرات عشان الحركة اللانهائية تكون سلسة
+  const tripled = [...photoList, ...photoList, ...photoList];
+
   return (
-    <div className="px-4 pb-4">
+    <div className="pb-28">
       <div className="pt-20" />
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-2xl text-ivory">صور <span className="text-gold-bright">المطعم</span></h2>
+
+      {/* ── العنوان ── */}
+      <div className="px-4 mb-6">
+        <h2 className="text-2xl text-ivory font-display">
+          صور <span className="text-gold-bright">المطعم</span>
+        </h2>
+        <p className="mt-1 text-sm text-muted">اسحب يمين أو شمال لاستعراض الصور</p>
       </div>
 
-      {/* Photo Grid */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        {photoList.map((photo, idx) => (
-          <PhotoCard
-            key={photo.id || `static-${idx}`}
-            photo={photo}
-            index={idx}
-            onSelect={openFullscreen}
-          />
-        ))}
+      {/* ══════════ HORIZONTAL AUTO-SCROLL CAROUSEL ══════════ */}
+      <div
+        ref={scrollRef}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerUp}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        className="no-scrollbar flex gap-4 overflow-x-auto px-4 select-none"
+        style={{ cursor: 'grab', scrollbarWidth: 'none', touchAction: 'pan-y' }}
+      >
+        {tripled.map((photo, i) => {
+          // الـ real index في القائمة الأصلية
+          const realIdx = i % photoList.length;
+          return (
+            <div
+              key={`carousel-${i}`}
+              onClick={() => openFullscreen(realIdx)}
+              className="group relative flex-shrink-0 cursor-pointer overflow-hidden rounded-2xl border border-[#2c4136]/60"
+              style={{ width: 260, height: 340 }}
+            >
+              <img
+                src={photo.src}
+                alt={photo.caption || 'صورة من مطعم المروة'}
+                loading="lazy"
+                draggable={false}
+                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+              />
+              {/* Gradient overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-[#12211d]/90 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+              {/* Caption */}
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3">
+                <p className="text-sm text-white/90 font-semibold truncate">{photo.caption}</p>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
-      {/* Fullscreen Viewer Overlay */}
+      {/* ══════════ GRID SECTION (اختياري — الصور كلها كـ Grid تحت) ══════════ */}
+      <div className="px-4 mt-10">
+        <h3 className="text-xl text-ivory font-display mb-4">
+          كل الصور
+        </h3>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {photoList.map((photo, idx) => (
+            <div
+              key={photo.id || `grid-${idx}`}
+              onClick={() => openFullscreen(idx)}
+              className="group relative aspect-square cursor-pointer overflow-hidden rounded-2xl border border-surface"
+            >
+              <img
+                src={photo.src}
+                alt={photo.caption || 'صورة من مطعم المروة'}
+                loading="lazy"
+                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#12211d]/80 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+              <p className="absolute bottom-2 right-2 left-2 text-right text-xs text-ivory opacity-0 transition-opacity group-hover:opacity-100 truncate">
+                {photo.caption}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Fullscreen Viewer ── */}
       {fullscreenIdx !== null && photoList.length > 0 && (
         <FullscreenViewer
           photos={photoList}
@@ -126,6 +220,10 @@ export default function PhotosPage() {
   );
 }
 
+/* ═══════════════════════════════════════════════════════════
+   Fullscreen Viewer (preserved from original)
+   ═══════════════════════════════════════════════════════════ */
+
 type FullscreenViewerProps = {
   photos: PhotoItem[];
   index: number;
@@ -135,9 +233,6 @@ type FullscreenViewerProps = {
   onPrev: () => void;
 };
 
-/**
- * FullscreenViewer Overlay Component with unified touch and mouse dragging swipe gestures.
- */
 function FullscreenViewer({
   photos,
   index,
@@ -152,7 +247,6 @@ function FullscreenViewer({
   const isDragging = useRef(false);
   const [translateX, setTranslateX] = useState(0);
 
-  // Unified Gesture Handlers
   const startDrag = useCallback((clientX: number) => {
     startX.current = clientX;
     isDragging.current = true;
@@ -168,23 +262,18 @@ function FullscreenViewer({
   const endDrag = useCallback(() => {
     if (!isDragging.current) return;
     isDragging.current = false;
-    
     if (currentTranslate.current > SWIPE_THRESHOLD) {
       onPrev();
     } else if (currentTranslate.current < -SWIPE_THRESHOLD) {
       onNext();
     }
-    
     currentTranslate.current = 0;
     setTranslateX(0);
   }, [onNext, onPrev]);
 
-  // Touch Event bindings
   const handleTouchStart = (e: React.TouchEvent) => startDrag(e.touches[0].clientX);
   const handleTouchMove = (e: React.TouchEvent) => moveDrag(e.touches[0].clientX);
   const handleTouchEnd = () => endDrag();
-
-  // Mouse Event bindings
   const handleMouseDown = (e: React.MouseEvent) => startDrag(e.clientX);
   const handleMouseMove = (e: React.MouseEvent) => moveDrag(e.clientX);
   const handleMouseUp = () => endDrag();
@@ -262,7 +351,7 @@ function FullscreenViewer({
         <ChevronLeft size={28} className="text-white" />
       </button>
 
-      {/* Navigation Indicators / Dots */}
+      {/* Dots */}
       <div className="absolute bottom-16 left-0 right-0 flex justify-center gap-2">
         {photos.map((photo, i) => (
           <button
